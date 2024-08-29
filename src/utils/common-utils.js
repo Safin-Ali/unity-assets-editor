@@ -14,6 +14,21 @@ export const pathGen = (fileName) => {
 };
 
 /**
+ * Converts an array of hexadecimal byte strings to an ASCII string.
+ * 
+ * @param {string[]} hexBytes - An array of hexadecimal byte strings (e.g., ['48', '65', '6c', '6c', '6f']).
+ * @returns {string} The corresponding ASCII string (e.g., 'Hello').
+ * @throws {Error} Throws an error if any item in the array is not a valid hexadecimal byte string.
+ */
+export const hexBytesToAscii = (hexArray) => {
+    if (!Array.isArray(hexArray) || !hexArray.every(item => /^[0-9a-fA-F]{2}$/.test(item))) {
+        throw new Error('The input must be an array of valid hexadecimal byte strings.');
+    }
+
+    return hexArray.map(hex => String.fromCharCode(parseInt(hex, 16))).join('');
+};
+
+/**
  * Converts an ASCII string to an array of hexadecimal byte strings.
  * 
  * @param {string} ascii - The ASCII string to convert (e.g., 'Hello').
