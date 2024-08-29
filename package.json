@@ -1,0 +1,22 @@
+{
+  "name": "unity-assets-editor",
+  "version": "1.0.0",
+  "description": "Unity Assets Editor For BUSSID",
+  "type": "module",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node --watch src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "UABE",
+    "UABEA",
+    "BUSSID",
+    "UABE",
+    "Unity",
+    "Assets",
+    "Editor"
+  ],
+  "author": "DevSA",
+  "license": "MIT"
+}
