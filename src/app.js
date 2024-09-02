@@ -1,25 +1,21 @@
 import FileHandler from "./classes/FileHandler.js";
 import HexHandler from "./classes/HexHandler.js";
-import { asciiToHexBytes, hexBytesToAscii, pathGen } from "./utils/common-utils.js";
+import { asciiToHexBytes, pathGen } from "./utils/common-utils.js";
 
 const file = new FileHandler({
 	inputPath:pathGen('/buffer/hello.txt'),
-	outPath:pathGen('/buffer/dest.bin')	
+	outPath:pathGen('/buffer/dest.bin')
 });
-
-// new HexHandler(x.buffer).findOffset(['20','44','65','76','58','41']);
-console.log(file.buffer);
 
 const ins = new HexHandler(file.buffer);
 
-const [first] = ins.findIndex(['58','41']);
+// modify bytes
+const r = ins.replaceBytes(ins.findIndex(asciiToHexBytes('Dex'))[0].start,asciiToHexBytes('Dev'));
 
-console.log(first);
+// remove bytes
+const rm = ins.removeBytes(ins.findIndex(asciiToHexBytes('M'))[0].start,1);
 
-ins.replaceHex(first.start,asciiToHexBytes('ZZ'));
+// insert bytes
+const insert = ins.insertBytes(ins.findIndex(asciiToHexBytes('Z'))[0].start,asciiToHexBytes('Y'));
 
-console.log(file.buffer);
-
-file.writeBuffer()
-
-
+console.log(r,rm,insert);
