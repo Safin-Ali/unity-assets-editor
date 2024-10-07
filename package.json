@@ -18,5 +18,9 @@
 		"Editor"
 	],
 	"author": "DevSA",
-	"license": "MIT"
+	"license": "MIT",
+	"dependencies": {
+		"@inquirer/prompts": "^7.0.0",
+		"figlet": "^1.7.0"
+	}
 }
