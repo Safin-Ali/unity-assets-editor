@@ -1,7 +1,8 @@
-import { selectors } from '../utils/cli-seelctors.js';
+import { selectors} from '../utils/cli-seelctors.js';
 import { pathGen } from '../utils/common-utils.js';
 import {readdirSync} from "node:fs";
 import { select } from '@inquirer/prompts';
+import { ISSHandler } from './ISSHandler.js';
 
 export class CLIHandler {
 
@@ -11,6 +12,9 @@ export class CLIHandler {
 	}
 
 	async #initCLIHandler () {
-		const ans1 = await select(selectors[0]);
+		const rootAns = await select(selectors[0]);
+		if(rootAns === 'iss') {
+			new ISSHandler(this.#assetsDir)
+		}
 	}
 }
