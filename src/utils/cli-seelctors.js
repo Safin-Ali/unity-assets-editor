@@ -9,3 +9,16 @@ export const selectors = [
 		]
 	},
 ]
+
+export const validators = [
+	{
+		name:'validateInteger',
+		cb:(input) => {
+			if(isNaN(input)) {
+				console.error('\nplease provide number');
+				return false;
+			}
+			 return true
+		}
+	}
+]
