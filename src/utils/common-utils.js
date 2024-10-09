@@ -6,11 +6,13 @@ import { join } from 'node:path';
  * @param {string} fileName - The name of the file or directory to append to the current working directory.
  * @returns {string} The absolute path to the file or directory.
  */
-export const pathGen = (fileName) => {
-    if (typeof fileName !== 'string') {
-        throw new TypeError('The fileName argument must be a string.');
-    }
-    return join(process.cwd(), fileName);
+export const pathGen = (...fileNames) => {
+	fileNames.forEach(fn => {
+		if (typeof fn !== 'string') {
+			throw new TypeError('The fileName argument must be a string.');
+		}
+	})
+    return join(process.cwd(), ...fileNames);
 };
 
 /**
@@ -45,3 +47,19 @@ export const asciiToHexBytes = (ascii) => {
         return hexPair.toUpperCase();
     });
 };
+
+/**
+ * Slices a string from the end based on the specified slice value.
+ *
+ * @param {string} string - The input string to be sliced.
+ * @param {number} sliceValue - The number of characters to remove from the end of the string.
+ * @returns {string} The sliced string.
+ * @throws {Error} Will throw an error if sliceValue is negative.
+ */
+export const endStringSlice = (string, sliceValue) => {
+    if (sliceValue < 0) {
+        throw new Error('sliceValue must be non-negative');
+    }
+    return string.slice(0, string.length - sliceValue);
+};
+
