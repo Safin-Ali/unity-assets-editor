@@ -21,6 +21,7 @@
 	"license": "MIT",
 	"dependencies": {
 		"@inquirer/prompts": "^7.0.0",
-		"figlet": "^1.7.0"
+		"figlet": "^1.7.0",
+		"nanospinner": "^1.1.0"
 	}
 }
