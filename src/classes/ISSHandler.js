@@ -3,6 +3,7 @@ import { validators } from "../utils/cli-seelctors.js";
 import FileHandler from "./FileHandler.js";
 import { asciiToHexBytes, pathGen } from "../utils/common-utils.js";
 import HexHandler from "./HexHandler.js";
+import { createSpinner } from "nanospinner";
 
 const busHD_01Alias = "BusHD_01";
 
@@ -16,6 +17,7 @@ export class ISSHandler {
 		mono: null,
 		obj: null,
 		skin: null,
+		skinAlias:null,
 		quantity: 0,
 	};
 
@@ -40,6 +42,7 @@ export class ISSHandler {
 			this.#baseAssets.mono = this.#assetsDir[parseInt(await this.#getInput("Input traffic Mono index"))];
 			this.#baseAssets.obj = this.#assetsDir[parseInt(await this.#getInput("Input traffic Object index"))];
 			this.#baseAssets.skin = this.#assetsDir[parseInt(await this.#getInput("Input traffic Skin index"))];
+			this.#baseAssets.skinAlias =await input({message:"Input Skin Alias Name",required:true});
 			this.#baseAssets.quantity = parseInt(await this.#getInput("Input Quantity"));
 
 			console.log(this.#baseAssets);
@@ -76,10 +79,18 @@ export class ISSHandler {
 	 * @private
 	 */
 	#startISS() {
-		for (let i = 0; i < this.#baseAssets.quantity; i++) {
-			const fileIndex = (i + 1).toString().padStart(2, "0");
-			this.#manipulateMono(fileIndex);
-			this.#manipulateObj(fileIndex);
+		const spinner = createSpinner("Please Wait");
+		try {
+			spinner.spin();
+			for (let i = 0; i < this.#baseAssets.quantity; i++) {
+				const fileIndex = (i + 1).toString().padStart(2, "0");
+				this.#manipulateMono(fileIndex);
+				this.#manipulateObj(fileIndex);
+				this.#manipulateSkin(fileIndex);
+			}
+			spinner.success({text:"Increased Skin Slots"});
+		} catch (error) {
+			spinner.error({text:"ISS Handling Failed"});
 		}
 	}
 
@@ -112,7 +123,7 @@ export class ISSHandler {
 
 			fileIns.writeBuffer();
 		} catch (error) {
-			console.error(`Error manipulating Mono file for index ${indexStr}:`, error);
+			console.error(`Error manipulating Mono file for index ${indexStr}:`, error.message);
 		}
 	}
 
@@ -145,7 +156,31 @@ export class ISSHandler {
 
 			fileIns.writeBuffer();
 		} catch (error) {
-			console.error(`Error manipulating Object file for index ${indexStr}:`, error);
+			console.error(`Error manipulating Object file for index ${indexStr}:`, error.message);
+		}
+	}
+
+	#manipulateSkin(indexStr) {
+		try {
+			const newSkinFile = this.#baseAssets.skin.slice(0, 30) + indexStr;
+			const fileIns = new FileHandler({
+				inputPath: pathGen("assets", this.#baseAssets.skin),
+				outPath: pathGen("output", newSkinFile),
+			});
+			const hexIns = new HexHandler(fileIns.buffer);
+			const skinAliasOffset = hexIns.findIndex(asciiToHexBytes(this.#baseAssets.skinAlias));
+			const newSkinAlias = this.#baseAssets.skinAlias.slice(0,this.#baseAssets.skinAlias.length-2)+indexStr
+
+			// Modify Skin Alias In Mat
+			hexIns.replaceBytes(skinAliasOffset[0].start,asciiToHexBytes(newSkinAlias));
+
+			// Modify Skin Alias In Tex
+			hexIns.replaceBytes(skinAliasOffset[1].start,asciiToHexBytes(newSkinAlias));
+
+			fileIns.writeBuffer();
+			
+		} catch (error) {
+			console.error(`Error manipulating Skin file for index ${indexStr}:`, error.message);
 		}
 	}
 }
