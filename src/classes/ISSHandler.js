@@ -79,7 +79,7 @@ export class ISSHandler {
 		for (let i = 0; i < this.#baseAssets.quantity; i++) {
 			const fileIndex = (i + 1).toString().padStart(2, "0");
 			this.#manipulateMono(fileIndex);
-			// this.#manipulateObj(fileIndex);
+			this.#manipulateObj(fileIndex);
 		}
 	}
 
@@ -113,6 +113,39 @@ export class ISSHandler {
 			fileIns.writeBuffer();
 		} catch (error) {
 			console.error(`Error manipulating Mono file for index ${indexStr}:`, error);
+		}
+	}
+
+	#manipulateObj(indexStr) {
+		try {
+
+			// new object dependency name
+			const newMonoDep = this.#baseAssets.mono.slice(0, 30) + indexStr;
+			const newSkinDep = this.#baseAssets.skin.slice(0, 30) + indexStr;
+			const newObjFile = this.#baseAssets.obj.slice(0, 30) + indexStr;
+			const fileIns = new FileHandler({
+				inputPath: pathGen("assets", this.#baseAssets.obj),
+				outPath: pathGen("output", newObjFile),
+			});
+
+			const hexIns = new HexHandler(fileIns.buffer);
+
+			const monoDepOffset = hexIns.findIndex(asciiToHexBytes(this.#baseAssets.mono));
+			const skinDepOffset = hexIns.findIndex(asciiToHexBytes(this.#baseAssets.skin));
+			const monoAliasOffset = hexIns.findIndex(asciiToHexBytes(busHD_01Alias));
+
+			// Modify traffic skin file dependency
+			hexIns.replaceBytes(skinDepOffset[0].start, asciiToHexBytes(newSkinDep));
+
+			// Modify traffic mono file dependency
+			hexIns.replaceBytes(monoDepOffset[0].start, asciiToHexBytes(newMonoDep));
+
+			// Modify BusHD_01 alias
+			hexIns.replaceBytes(monoAliasOffset[0].start, asciiToHexBytes(`BusHD_${indexStr}`));
+
+			fileIns.writeBuffer();
+		} catch (error) {
+			console.error(`Error manipulating Object file for index ${indexStr}:`, error);
 		}
 	}
 }
