@@ -12,7 +12,7 @@ export const pathGen = (...fileNames) => {
 			throw new TypeError('The fileName argument must be a string.');
 		}
 	})
-    return join(process.cwd(), ...fileNames);
+    return join(Deno.cwd(), ...fileNames);
 };
 
 /**

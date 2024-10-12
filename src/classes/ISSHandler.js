@@ -1,8 +1,6 @@
-import { confirm, input } from "@inquirer/prompts";
+import { confirm, input } from "npm:@inquirer/prompts";
 import { validators } from "../utils/cli-seelctors.js";
-import { Worker } from "node:worker_threads";
-import { createSpinner } from "nanospinner";
-import { pathGen } from "../utils/common-utils.js";
+import { createSpinner } from "npm:nanospinner";
 /**
  * Handles the increasing of skin slots based on the provided Mono, Object, and Skin file paths.
  */
@@ -39,7 +37,11 @@ export class ISSHandler {
 			this.#baseAssets.obj = this.#assetsDir[parseInt(await this.#getInput("Input traffic Object index"))];
 			this.#baseAssets.skin = this.#assetsDir[parseInt(await this.#getInput("Input traffic Skin index"))];
 			this.#baseAssets.skinAlias = await input({ message: "Input Skin Alias Name", required: true });
-			this.#baseAssets.quantity = parseInt(await this.#getInput("Input Quantity"));
+			this.#baseAssets.quantity = parseInt(await input({
+				message:"Input Quantity",
+				required: true,
+				validate: validators[1].cb,
+			}));
 
 			console.log(this.#baseAssets);
 
@@ -77,21 +79,28 @@ export class ISSHandler {
 	#startISS() {
 		const spinner = createSpinner("Please Wait");
 		spinner.start();
-		const worker = new Worker(pathGen("src", "worker", "iss-worker.js"));
+		const worker = new Worker(import.meta.resolve("../worker/iss-worker.js"),{
+			type:"module"
+		});
 
 		worker.postMessage(this.#baseAssets);
 
-		worker.on("error", (error) => {
-			spinner.error({ text: "ISS Handling Worker Failed \n" });
+		worker.onmessage = (message) => {			
+			if(message.data === "done") {
+				worker.terminate();
+				spinner.success({ text: "Increased Skin Slots \n Press any key for close" });
+			}
+		};
+
+		worker.onerror = (error => {
 			console.error(error);
+			spinner.error({ text: "ISS Handling Worker Failed" });
+			worker.terminate();
 		});
 
-		worker.on("exit", (code) => {
-			if (code !== 0) {
-				spinner.error({ text: "ISS Handling Exit With 1 \n" });
-			} else {
-				spinner.success({ text: "Increased Skin Slots \n" });
-			}
+		worker.onmessageerror = (() => {
+			spinner.error({ text: "ISS Handling Worker Failed To Worker Data Deserialized" });
+			worker.terminate();
 		});
 	}
 }
