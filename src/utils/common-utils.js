@@ -1,51 +1,56 @@
-import { join } from 'node:path';
+import { join } from "node:path";
 
 /**
  * Generates an absolute path by joining the current working directory with the provided file name.
- * 
+ *
  * @param {string} fileName - The name of the file or directory to append to the current working directory.
  * @returns {string} The absolute path to the file or directory.
  */
 export const pathGen = (...fileNames) => {
-	fileNames.forEach(fn => {
-		if (typeof fn !== 'string') {
-			throw new TypeError('The fileName argument must be a string.');
-		}
-	})
-    return join(Deno.cwd(), ...fileNames);
+  fileNames.forEach((fn) => {
+    if (typeof fn !== "string") {
+      throw new TypeError("The fileName argument must be a string.");
+    }
+  });
+  return join(Deno.cwd(), ...fileNames);
 };
 
 /**
  * Converts an array of hexadecimal byte strings to an ASCII string.
- * 
+ *
  * @param {string[]} hexBytes - An array of hexadecimal byte strings (e.g., ['48', '65', '6c', '6c', '6f']).
  * @returns {string} The corresponding ASCII string (e.g., 'Hello').
  * @throws {Error} Throws an error if any item in the array is not a valid hexadecimal byte string.
  */
 export const hexBytesToAscii = (hexArray) => {
-    if (!Array.isArray(hexArray) || !hexArray.every(item => /^[0-9a-fA-F]{2}$/.test(item))) {
-        throw new Error('The input must be an array of valid hexadecimal byte strings.');
-    }
+  if (
+    !Array.isArray(hexArray) ||
+    !hexArray.every((item) => /^[0-9a-fA-F]{2}$/.test(item))
+  ) {
+    throw new Error(
+      "The input must be an array of valid hexadecimal byte strings.",
+    );
+  }
 
-    return hexArray.map(hex => String.fromCharCode(parseInt(hex, 16))).join('');
+  return hexArray.map((hex) => String.fromCharCode(parseInt(hex, 16))).join("");
 };
 
 /**
  * Converts an ASCII string to an array of hexadecimal byte strings.
- * 
+ *
  * @param {string} ascii - The ASCII string to convert (e.g., 'Hello').
  * @returns {string[]} An array of hexadecimal byte strings (e.g., ['48', '65', '6c', '6c', '6f']).
  * @throws {Error} Throws an error if the input is not a string.
  */
 export const asciiToHexBytes = (ascii) => {
-    if (typeof ascii !== 'string') {
-        throw new Error('The input must be a string.');
-    }
+  if (typeof ascii !== "string") {
+    throw new Error("The input must be a string.");
+  }
 
-    return Array.from(ascii).map(char => {
-        const hexPair = char.charCodeAt(0).toString(16).padStart(2, '0');
-        return hexPair.toUpperCase();
-    });
+  return Array.from(ascii).map((char) => {
+    const hexPair = char.charCodeAt(0).toString(16).padStart(2, "0");
+    return hexPair.toUpperCase();
+  });
 };
 
 /**
@@ -57,9 +62,8 @@ export const asciiToHexBytes = (ascii) => {
  * @throws {Error} Will throw an error if sliceValue is negative.
  */
 export const endStringSlice = (string, sliceValue) => {
-    if (sliceValue < 0) {
-        throw new Error('sliceValue must be non-negative');
-    }
-    return string.slice(0, string.length - sliceValue);
+  if (sliceValue < 0) {
+    throw new Error("sliceValue must be non-negative");
+  }
+  return string.slice(0, string.length - sliceValue);
 };
-

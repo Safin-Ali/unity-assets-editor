@@ -15,7 +15,7 @@ export default class FileHandler {
 	 */
 
 	#destPath = null;
-	constructor({ inputPath, outPath, fileName }) {
+	constructor({ inputPath, outPath }) {
 		if (typeof inputPath !== 'string') {
 			throw new TypeError('The inputPath must be a string.');
 		}
