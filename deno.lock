@@ -354,6 +354,10 @@
     "https://deno.land/std@0.221.0/path/windows/to_file_url.ts": "40e560ee4854fe5a3d4d12976cef2f4e8914125c81b11f1108e127934ced502e",
     "https://deno.land/std@0.221.0/path/windows/to_namespaced_path.ts": "4ffa4fb6fae321448d5fe810b3ca741d84df4d7897e61ee29be961a6aac89a4c",
     "https://deno.land/std@0.221.0/text/levenshtein_distance.ts": "24be5cc88326bbba83ca7c1ea89259af0050cffda2817ff3a6d240ad6495eae2",
+    "https://deno.land/x/ansi_styles@1.0.1/lib/constants.ts": "4bc8ccccd548f4eac5bc29bbe24956bad3f63b83ad92289e09d32cbe77bf67f1",
+    "https://deno.land/x/ansi_styles@1.0.1/lib/main.ts": "ece1f6c368f4fb289205378bea4a2f67e5b0ec0f3cd75df10f31d2f234d798fb",
+    "https://deno.land/x/ansi_styles@1.0.1/lib/utils.ts": "2c887afbb6ac730872395fa9a75a0543a6bac65419cd1fb3eb0fc4c3b354e889",
+    "https://deno.land/x/ansi_styles@1.0.1/mod.ts": "9b544557ba79193cce17078fa20959f2c2b816f3fd8b209658e66a603e8f3dff",
     "https://deno.land/x/cliffy@v0.25.7/_utils/distance.ts": "02af166952c7c358ac83beae397aa2fbca4ad630aecfcd38d92edb1ea429f004",
     "https://deno.land/x/cliffy@v0.25.7/ansi/ansi_escapes.ts": "885f61f343223f27b8ec69cc138a54bea30542924eacd0f290cd84edcf691387",
     "https://deno.land/x/cliffy@v0.25.7/ansi/chain.ts": "31fb9fcbf72fed9f3eb9b9487270d2042ccd46a612d07dd5271b1a80ae2140a0",
@@ -405,6 +409,17 @@
     "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/prompt.ts": "f10e1c8a0c2ca093a485f7f1156342210b27a8cffc96fe0b4cff60007cabab30",
     "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/secret.ts": "cece271c7ce01e12b249c31c2f9cea9e53b6e6be7621a478dac902bd8f288b61",
     "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/select.ts": "c10902aeaca02a55d9b846934958dd166ee39c741faebdaa9800689e402186cf",
-    "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/toggle.ts": "028f80de31750e7b5479727a64b4878f090ecd783fe3bb0d286e2e1c29f0eee3"
+    "https://deno.land/x/cliffy@v1.0.0-rc.4/prompt/toggle.ts": "028f80de31750e7b5479727a64b4878f090ecd783fe3bb0d286e2e1c29f0eee3",
+    "https://deno.land/x/deno_figlet@1.0.0/dist/fonts/_doom.ts": "f907a3a04b45510c3157c9c6db77b0b343d163be3beebabae2b7df04dd027526",
+    "https://deno.land/x/deno_figlet@1.0.0/dist/fonts/_standard.ts": "2f14e066917063201da11d56e23432285a1c81005a981c4adbed85fc86af3073",
+    "https://deno.land/x/deno_figlet@1.0.0/dist/fonts/_starwars.ts": "855573433d68b575d63103418f604d8e15923765a1f0166d250f69938a49852c",
+    "https://deno.land/x/deno_figlet@1.0.0/dist/types.ts": "d29753eb0389560d36cc750364e19c3f244462811842bf81daa59e7f5345e6fa",
+    "https://deno.land/x/deno_figlet@1.0.0/examples/colors.ts": "4462b3fe31cea73d261bb721603f07ee61908aac60b7312abe6eb5fdc641f814",
+    "https://deno.land/x/deno_figlet@1.0.0/mod.ts": "4ffbdf1ecf1639213062c35dcd867e66cefd9ec13cf9d01880d735234e367b79",
+    "https://deno.land/x/deno_figlet@1.0.0/src/factory.ts": "33f8661da73d668b8958c27971e055240931d5197cc76c008034c7166514b35c",
+    "https://deno.land/x/deno_figlet@1.0.0/src/index.ts": "2015b11c6a34a8ed24fdb05866e2a6bedc313afbb2703152d386314d86048f26",
+    "https://deno.land/x/deno_figlet@1.0.0/src/loader.ts": "c5629934fbf9d913d270f40ad41e227f5b76273bb9d48350942a8a4c81a67e00",
+    "https://deno.land/x/deno_figlet@1.0.0/src/serializer.ts": "cca9c88061528720c3beab69d2ef856a0eaa41d42abe0c1351709868775e9a5f",
+    "https://deno.land/x/deno_figlet@1.0.0/src/types.ts": "12345663f5f54db5b97d847cd163dac8b2b18d50c86bd01ddb05266428118ecc"
   }
 }
