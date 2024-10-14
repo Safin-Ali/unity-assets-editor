@@ -1,3 +1,8 @@
+import {
+  brightGreen,
+  brightRed,
+  brightYellow,
+} from "https://deno.land/std@0.221.0/fmt/colors.ts";
 import { join } from "node:path";
 
 /**
@@ -18,8 +23,8 @@ export const pathGen = (...fileNames) => {
 /**
  * Converts an array of hexadecimal byte strings to an ASCII string.
  *
- * @param {string[]} hexBytes - An array of hexadecimal byte strings (e.g., ['48', '65', '6c', '6c', '6f']).
- * @returns {string} The corresponding ASCII string (e.g., 'Hello').
+ * @param {string[]} hexBytes - An array of hexadecimal byte strings (e.g., ["48", "65", "6c", "6c", "6f"]).
+ * @returns {string} The corresponding ASCII string (e.g., "Hello").
  * @throws {Error} Throws an error if any item in the array is not a valid hexadecimal byte string.
  */
 export const hexBytesToAscii = (hexArray) => {
@@ -38,8 +43,8 @@ export const hexBytesToAscii = (hexArray) => {
 /**
  * Converts an ASCII string to an array of hexadecimal byte strings.
  *
- * @param {string} ascii - The ASCII string to convert (e.g., 'Hello').
- * @returns {string[]} An array of hexadecimal byte strings (e.g., ['48', '65', '6c', '6c', '6f']).
+ * @param {string} ascii - The ASCII string to convert (e.g., "Hello").
+ * @returns {string[]} An array of hexadecimal byte strings (e.g., ["48", "65", "6c", "6c", "6f"]).
  * @throws {Error} Throws an error if the input is not a string.
  */
 export const asciiToHexBytes = (ascii) => {
@@ -67,3 +72,30 @@ export const endStringSlice = (string, sliceValue) => {
   }
   return string.slice(0, string.length - sliceValue);
 };
+
+/**
+ * Logs a message with the specified color function.
+ * @param {string} msg - The message to log.
+ * @param {function} colorFn - The color function to apply to the message.
+ */
+const logWithColor = (msg, colorFn) => {
+  console.log(colorFn(msg));
+};
+
+/**
+ * Logs an error message in bright red.
+ * @param {string} msg - The error message to log.
+ */
+export const errorLog = (msg) => logWithColor(msg, brightRed);
+
+/**
+ * Logs a success message in bright green.
+ * @param {string} msg - The success message to log.
+ */
+export const successLog = (msg) => logWithColor(msg, brightGreen);
+
+/**
+ * Logs a warning message in bright yellow.
+ * @param {string} msg - The warning message to log.
+ */
+export const warningLog = (msg) => logWithColor(msg, brightYellow);

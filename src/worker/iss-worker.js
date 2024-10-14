@@ -1,18 +1,23 @@
 import FileHandler from "../classes/FileHandler.js";
 import HexHandler from "../classes/HexHandler.js";
-import { asciiToHexBytes, pathGen } from "../utils/common-utils.js";
+import { asciiToHexBytes, errorLog, pathGen } from "../utils/common-utils.js";
 
 const busHD_01Alias = "BusHD_01";
 let baseAssets = null;
 
 // Listen for messages from the parent thread
 self.onmessage = (event) => {
-  baseAssets = event.data;
-  for (let i = 0; i < baseAssets.quantity; i++) {
-    const fileIndex = (i + 1).toString().padStart(2, "0");
-    manipulateFiles(fileIndex);
+  try {
+    baseAssets = event.data;
+    for (let i = 0; i < baseAssets.quantity; i++) {
+      const fileIndex = (i + 1).toString().padStart(2, "0");
+      manipulateFiles(fileIndex);
+    }
+    self.postMessage("done");
+  } catch (error) {
+    errorLog(`\n ${error.message}`);
+    self.postMessage("error");
   }
-  self.postMessage("done");
 };
 
 /**
@@ -54,11 +59,8 @@ const manipulateMono = (indexStr) => {
     );
 
     fileIns.writeBuffer();
-  } catch (error) {
-    console.error(
-      `Error manipulating Mono file for index ${indexStr}:`,
-      error.message,
-    );
+  } catch (_) {
+    throw new Error(`Error manipulating Mono file for index ${indexStr}:`);
   }
 };
 
@@ -104,11 +106,8 @@ const manipulateObj = (indexStr) => {
     );
 
     fileIns.writeBuffer();
-  } catch (error) {
-    console.error(
-      `Error manipulating Object file for index ${indexStr}:`,
-      error.message,
-    );
+  } catch (_) {
+    throw new Error(`Error manipulating Object file for index ${indexStr}:`);
   }
 };
 
@@ -143,10 +142,7 @@ const manipulateSkin = (indexStr) => {
     );
 
     fileIns.writeBuffer();
-  } catch (error) {
-    console.error(
-      `Error manipulating Skin file for index ${indexStr}:`,
-      error.message,
-    );
+  } catch (_) {
+    throw new Error(`Error manipulating Skin file for index ${indexStr}:`);
   }
 };

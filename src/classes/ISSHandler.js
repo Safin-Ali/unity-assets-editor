@@ -5,7 +5,12 @@ import {
   Confirm,
   Input,
 } from "https://deno.land/x/cliffy@v0.25.7/prompt/mod.ts";
-import { brightYellow } from "https://deno.land/std@0.221.0/fmt/colors.ts";
+import {
+  brightBlue,
+  brightYellow,
+} from "https://deno.land/std@0.221.0/fmt/colors.ts";
+import { restartApp } from "../event/app-event.js";
+import { errorLog } from "../utils/common-utils.js";
 
 /**
  * Handles the increasing of skin slots based on the provided Mono, Object, and Skin file paths.
@@ -26,11 +31,16 @@ export class ISSHandler {
    * @param {string[]} assetsDir - An array of asset directory paths.
    */
   constructor(assetsDir) {
-    this.#assetsDir = assetsDir;
-    this.#assetsDir.forEach((path, idx) => {
-      console.log(`${idx} ${path}`);
-    });
-    this.#initISSAsking();
+    try {
+      this.#assetsDir = assetsDir;
+      this.#assetsDir.forEach((path, idx) => {
+        console.log(brightYellow(`${idx} `), brightBlue(`${path}`));
+      });
+      this.#initISSAsking();
+    } catch (error) {
+      errorLog(error.message);
+      restartApp();
+    }
   }
 
   /**
@@ -50,13 +60,14 @@ export class ISSHandler {
       ];
       this.#baseAssets.skinAlias = await Input.prompt({
         message: "Input Skin Alias Name",
+        pointer: brightYellow(":"),
         validate: (input) => !!input,
       });
       this.#baseAssets.quantity = parseInt(
         await this.#getInput("Input Quantity"),
       );
 
-      console.log(this.#baseAssets);
+      console.dir(this.#baseAssets);
 
       const confirmIss = await Confirm.prompt({
         message: "Are you sure above files are correct?",
@@ -66,8 +77,8 @@ export class ISSHandler {
       if (confirmIss) {
         this.#startISS();
       }
-    } catch (error) {
-      console.error("Error initializing ISS asking:", error);
+    } catch (_) {
+      throw new Error("Error initializing ISS asking:");
     }
   }
 
@@ -102,16 +113,21 @@ export class ISSHandler {
     worker.postMessage(this.#baseAssets);
 
     worker.onmessage = (message) => {
+      if (message.data === "error") {
+        restartApp();
+        spinner.error({ text: "ISS Handling Worker Failed" });
+        worker.terminate();
+      }
       if (message.data === "done") {
         worker.terminate();
         spinner.success({
           text: "Increased Skin Slots",
         });
+        restartApp();
       }
     };
 
-    worker.onerror = (error) => {
-      console.error(error);
+    worker.onerror = (_) => {
       spinner.error({ text: "ISS Handling Worker Failed" });
       worker.terminate();
     };
