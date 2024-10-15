@@ -107,17 +107,36 @@ export const warningLog = (msg) => logWithColor(msg, brightYellow);
  * @returns {string} The compact date-time string.
  */
 export const getCompactDateTime = (date = new Date()) => {
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-	const day = String(date.getDate()).padStart(2, '0');
-  
-	let hours = date.getHours();
-	const minutes = String(date.getMinutes()).padStart(2, '0');
-	const seconds = String(date.getSeconds()).padStart(2, '0');
-	const ampm = hours >= 12 ? 'PM' : 'AM';
-  
-	hours = String(hours % 12 || 12).padStart(2, '0'); // Convert to 12-hour format
-  
-	return `${year}${month}${day}${hours}${minutes}${seconds}${ampm}`;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const day = String(date.getDate()).padStart(2, "0");
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+
+  hours = String(hours % 12 || 12).padStart(2, "0"); // Convert to 12-hour format
+
+  return `${year}${month}${day}${hours}${minutes}${seconds}${ampm}`;
+};
+
+/**
+ * Converts an array of hexadecimal byte strings to the sum of their integer values.
+ *
+ * @param {string[]} hexBytes - An array of hexadecimal byte strings (e.g., ["1F", "01"]).
+ * @returns {number} The sum of the corresponding integer values.
+ * @throws {Error} Throws an error if any item in the array is not a valid hexadecimal byte string.
+ */
+export const hexToIntSum = (hexBytes) => {
+  if (
+    !Array.isArray(hexBytes) ||
+    !hexBytes.every((item) => /^[0-9a-fA-F]{2}$/.test(item))
+  ) {
+    throw new Error(
+      "The input must be an array of valid hexadecimal byte strings.",
+    );
   }
-  
+
+  return hexBytes.reduce((sum, hex) => sum + parseInt(hex, 16), 0);
+};
