@@ -140,3 +140,28 @@ export const hexToIntSum = (hexBytes) => {
 
   return hexBytes.reduce((sum, hex) => sum + parseInt(hex, 16), 0);
 };
+
+/**
+ * Converts an integer to an array of hexadecimal byte strings.
+ *
+ * @param {number} num - The integer to convert (e.g., 256).
+ * @returns {string[]} An array of hexadecimal byte strings (e.g., ["00", "01"] for 256).
+ * @throws {Error} Throws an error if the input is not a valid integer.
+ */
+export const intToHexBytes = (num) => {
+  if (!Number.isInteger(num)) {
+    throw new Error("The input must be a valid integer.");
+  }
+
+  const hexArray = [];
+  let tempNum = num;
+
+  // Break down the number into bytes
+  while (tempNum > 0) {
+    const byte = (tempNum & 0xff).toString(16).padStart(2, '0');
+    hexArray.unshift(byte); // Add to the beginning of the array
+    tempNum >>= 8; // Shift right by 8 bits to process the next byte
+  }
+
+  return hexArray.length > 0 ? hexArray : ["00"]; // Return ["00"] if the number is 0
+};
