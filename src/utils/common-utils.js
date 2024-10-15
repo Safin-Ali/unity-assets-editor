@@ -59,18 +59,18 @@ export const asciiToHexBytes = (ascii) => {
 };
 
 /**
- * Slices a string from the end based on the specified slice value.
+ * Slices a string or array from the end based on the specified slice value.
  *
- * @param {string} string - The input string to be sliced.
- * @param {number} sliceValue - The number of characters to remove from the end of the string.
- * @returns {string} The sliced string.
+ * @param {string | any[]} orginalVal - The input string or array to be sliced.
+ * @param {number} sliceValue - The number of elements to remove from the end of the string.
+ * @returns {string | any[]} The sliced value.
  * @throws {Error} Will throw an error if sliceValue is negative.
  */
-export const endStringSlice = (string, sliceValue) => {
+export const endSlice = (orginalVal, sliceValue) => {
   if (sliceValue < 0) {
     throw new Error("sliceValue must be non-negative");
   }
-  return string.slice(0, string.length - sliceValue);
+  return orginalVal.slice(0, orginalVal.length - sliceValue);
 };
 
 /**
