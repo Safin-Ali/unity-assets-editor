@@ -1,9 +1,12 @@
+import { writeFileSync } from "node:fs";
 import FileHandler from "../classes/FileHandler.js";
 import HexHandler from "../classes/HexHandler.js";
-import { asciiToHexBytes, errorLog, pathGen } from "../utils/common-utils.js";
+import { asciiToHexBytes, errorLog, getCompactDateTime, pathGen } from "../utils/common-utils.js";
 
 const busHD_01Alias = "BusHD_01";
 let baseAssets = null;
+
+let trafficMono = "";
 
 // Listen for messages from the parent thread
 self.onmessage = (event) => {
@@ -13,8 +16,9 @@ self.onmessage = (event) => {
       const fileIndex = (i + 1).toString().padStart(2, "0");
       manipulateFiles(fileIndex);
     }
+	writeFileSync(pathGen("output",`${getCompactDateTime()}.txt`),trafficMono);
     self.postMessage("done");
-  } catch (error) {
+} catch (error) {
     errorLog(`\n ${error.message}`);
     self.postMessage("error");
   }
@@ -39,6 +43,8 @@ const manipulateMono = (indexStr) => {
   try {
     const newObjDep = baseAssets.obj.slice(0, 30) + indexStr;
     const newMonoFile = baseAssets.mono.slice(0, 30) + indexStr;
+
+	trafficMono = trafficMono+`${newMonoFile}\n`;
 
     const fileIns = new FileHandler({
       inputPath: pathGen("assets", baseAssets.mono),
