@@ -99,3 +99,25 @@ export const successLog = (msg) => logWithColor(msg, brightGreen);
  * @param {string} msg - The warning message to log.
  */
 export const warningLog = (msg) => logWithColor(msg, brightYellow);
+
+/**
+ * Returns a compact date-time string in the format YYYYMMDDHHMMSSAM/PM.
+ *
+ * @param {Date} [date=new Date()] - The date to format. Defaults to the current date and time.
+ * @returns {string} The compact date-time string.
+ */
+export const getCompactDateTime = (date = new Date()) => {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+	const day = String(date.getDate()).padStart(2, '0');
+  
+	let hours = date.getHours();
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+	const seconds = String(date.getSeconds()).padStart(2, '0');
+	const ampm = hours >= 12 ? 'PM' : 'AM';
+  
+	hours = String(hours % 12 || 12).padStart(2, '0'); // Convert to 12-hour format
+  
+	return `${year}${month}${day}${hours}${minutes}${seconds}${ampm}`;
+  }
+  
