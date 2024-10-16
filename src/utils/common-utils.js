@@ -122,13 +122,14 @@ export const getCompactDateTime = (date = new Date()) => {
 };
 
 /**
- * Converts an array of hexadecimal byte strings to the sum of their integer values.
+ * Converts an array of hexadecimal byte strings to integer values.
  *
  * @param {string[]} hexBytes - An array of hexadecimal byte strings (e.g., ["1F", "01"]).
- * @returns {number} The sum of the corresponding integer values.
+ * @param {boolean} [sum=false] - If true, returns the sum of the integer values; otherwise, returns the concatenated integer value.
+ * @returns {number} The resulting integer value or sum of integer values.
  * @throws {Error} Throws an error if any item in the array is not a valid hexadecimal byte string.
  */
-export const hexToIntSum = (hexBytes) => {
+export const hexToInt = (hexBytes, sum = false) => {
   if (
     !Array.isArray(hexBytes) ||
     !hexBytes.every((item) => /^[0-9a-fA-F]{2}$/.test(item))
@@ -138,7 +139,9 @@ export const hexToIntSum = (hexBytes) => {
     );
   }
 
-  return hexBytes.reduce((sum, hex) => sum + parseInt(hex, 16), 0);
+  return sum
+    ? hexBytes.reduce((sum, hex) => sum + parseInt(hex, 16), 0)
+    : parseInt(hexBytes.join(""), 16);
 };
 
 /**
@@ -158,7 +161,7 @@ export const intToHexBytes = (num) => {
 
   // Break down the number into bytes
   while (tempNum > 0) {
-    const byte = (tempNum & 0xff).toString(16).padStart(2, '0');
+    const byte = (tempNum & 0xff).toString(16).padStart(2, "0");
     hexArray.unshift(byte); // Add to the beginning of the array
     tempNum >>= 8; // Shift right by 8 bits to process the next byte
   }
