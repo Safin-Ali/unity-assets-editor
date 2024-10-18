@@ -9,6 +9,10 @@ export const selectors = [
         name: brightCyan("Increase Skin Slots"),
         value: "iss",
       },
+      {
+        name: brightCyan("Traffic Spawn"),
+        value: "tsp",
+      },
     ],
   },
 ];

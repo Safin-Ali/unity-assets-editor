@@ -5,6 +5,7 @@ import { Select } from "https://deno.land/x/cliffy@v0.25.7/prompt/mod.ts";
 import { selectors } from "../utils/cli-seelctors.js";
 import { warningLog } from "../utils/common-utils.js";
 import { appCloseKeyEvtWrapper } from "../event/keypress-event.js";
+import { TSPHandler } from "./TSPHandler.js";
 
 export class CLIHandler {
   #assetsDir = null;
@@ -29,6 +30,8 @@ export class CLIHandler {
 
     if (rootAns === "iss") {
       new ISSHandler(this.#assetsDir);
+    } else if (rootAns === "tsp") {
+      new TSPHandler(this.#assetsDir);
     }
   }
 }
