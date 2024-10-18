@@ -5,5 +5,15 @@
     "dev": "deno run --allow-read --allow-write --allow-env --watch src/app.js",
     "compile": "deno compile --allow-read --allow-write --allow-env --target x86_64-pc-windows-msvc --icon ./icon.ico --include src/worker/iss-worker.js src/app.js",
     "rc": "deno cache --reload src/app.js"
+  },
+  "fmt": {
+    "include": ["src/"],
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  },
+  "lint": {
+    "include": ["src/"]
   }
 }
