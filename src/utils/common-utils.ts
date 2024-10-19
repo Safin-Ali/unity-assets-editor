@@ -4,7 +4,11 @@ import {
   brightYellow,
 } from "https://deno.land/std@0.221.0/fmt/colors.ts";
 import { join } from "node:path";
-import type { ErrorLogParams } from "../types/common-utils-custom.ts";
+import type {
+  ErrorLogParams,
+  hexToIntParams,
+  intToHexBytesParams,
+} from "../types/common-utils-custom.ts";
 
 /**
  * Generates an absolute path by joining the current working directory with the provided file names.
@@ -95,7 +99,9 @@ const logWithColor = (msg: string, colorFn: (msg: string) => string): void => {
  * @param params.msg - The error message to log, default is "Something is wrong".
  * @param params.error - The error object to log.
  */
-export const errorLog = ({ msg = "Something is wrong",error}: ErrorLogParams): void => {
+export const errorLog = (
+  { msg = "Something is wrong", error }: ErrorLogParams,
+): void => {
   const denoEnv = Deno.env.get("UABE_BUSSID");
   if (typeof denoEnv === "string" && parseInt(denoEnv)) {
     logWithColor(msg, brightRed);
@@ -143,12 +149,19 @@ export const getCompactDateTime = (date: Date = new Date()): string => {
 /**
  * Converts an array of hexadecimal byte strings to integer values.
  *
- * @param hexBytes - An array of hexadecimal byte strings.
- * @param sum - If true, returns the sum of the integer values; otherwise, returns the concatenated integer value.
- * @returns The resulting integer value or sum of integer values.
+ * @param {hexToIntParams} params - The parameters for the conversion.
+ * @returns {number} The resulting integer value or sum of integer values.
  * @throws {Error} Throws an error if any item in the array is not a valid hexadecimal byte string.
  */
-export const hexToInt = (hexBytes: string[], sum: boolean = false): number => {
+export const hexToInt = ({
+  hexBytes,
+  endian = "big",
+  sum = false,
+}: hexToIntParams): number => {
+  if (endian === "big") {
+    hexBytes = hexBytes.reverse();
+  }
+
   if (
     !Array.isArray(hexBytes) ||
     !hexBytes.every((item) => /^[0-9a-fA-F]{2}$/.test(item))
@@ -158,31 +171,37 @@ export const hexToInt = (hexBytes: string[], sum: boolean = false): number => {
     );
   }
 
-  return sum
+  const int = sum
     ? hexBytes.reduce((acc, hex) => acc + parseInt(hex, 16), 0)
     : parseInt(hexBytes.join(""), 16);
+
+  return int;
 };
 
 /**
  * Converts an integer to an array of hexadecimal byte strings.
  *
- * @param num - The integer to convert.
- * @returns An array of hexadecimal byte strings.
- * @throws {Error} Throws an error if the input is not a valid integer.
+ * @param {intToHexBytesParams} params - The parameters for the conversion.
+ * @returns {string[]} An array of hexadecimal byte strings representing the integer.
+ * @throws {Error} Throws an error if the input integer is not valid (i.e., not an integer).
  */
-export const intToHexBytes = (num: number): string[] => {
-  if (!Number.isInteger(num)) {
+export const intToHexBytes = (
+  { int, endian = "big" }: intToHexBytesParams,
+): string[] => {
+  if (!Number.isInteger(int)) {
     throw new Error("The input must be a valid integer.");
   }
 
   const hexArray: string[] = [];
-  let tempNum = num;
+  let tempInt = int;
 
-  while (tempNum > 0) {
-    const byte = (tempNum & 0xff).toString(16).padStart(2, "0");
+  while (tempInt > 0) {
+    const byte = (tempInt & 0xff).toString(16).padStart(2, "0");
     hexArray.unshift(byte);
-    tempNum >>= 8;
+    tempInt >>= 8;
   }
 
-  return hexArray.length > 0 ? hexArray : ["00"];
+  const hexBytes = hexArray.length > 0 ? hexArray : ["00"];
+
+  return endian === "big" ? hexBytes.reverse() : hexBytes;
 };
