@@ -1,5 +1,5 @@
 // import { confirm, input } from "npm:@inquirer/prompts";
-import { validators } from "../utils/cli-seelctors.js";
+import { validators } from "../utils/cli-seelctors.ts";
 import { createSpinner } from "npm:nanospinner";
 import {
   Confirm,
@@ -9,8 +9,8 @@ import {
   brightBlue,
   brightYellow,
 } from "https://deno.land/std@0.221.0/fmt/colors.ts";
-import { restartApp } from "../event/app-event.js";
-import { errorLog } from "../utils/common-utils.js";
+import { restartApp } from "../event/app-event.ts";
+import { errorLog } from "../utils/common-utils.ts";
 
 /**
  * Handles the increasing of skin slots based on the provided Mono, Object, and Skin file paths.

@@ -1,5 +1,5 @@
 import { Input, Toggle } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
-import { restartApp } from "../event/app-event.js";
+import { restartApp } from "../event/app-event.ts";
 import {
   asciiToHexBytes,
   endSlice,
@@ -7,16 +7,16 @@ import {
   hexToInt,
   intToHexBytes,
   pathGen,
-} from "../utils/common-utils.js";
-import { validators } from "../utils/cli-seelctors.js";
+} from "../utils/common-utils.ts";
+import { validators } from "../utils/cli-seelctors.ts";
 import {
   brightBlue,
   brightRed,
   brightYellow,
 } from "https://deno.land/std@0.221.0/fmt/colors.ts";
-import FileHandler from "./FileHandler.js";
-import HexHandler from "./HexHandler.js";
-import { hexBytesToAscii } from "../utils/common-utils.js";
+import FileHandler from "./FileHandler.ts";
+import HexHandler from "./HexHandler.ts";
+import { hexBytesToAscii } from "../utils/common-utils.ts";
 import { readFileSync } from "node:fs";
 
 /**

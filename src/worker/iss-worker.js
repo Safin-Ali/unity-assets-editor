@@ -1,12 +1,12 @@
 import { writeFileSync } from "node:fs";
-import FileHandler from "../classes/FileHandler.js";
-import HexHandler from "../classes/HexHandler.js";
+import FileHandler from "../classes/FileHandler.ts";
+import HexHandler from "../classes/HexHandler.ts";
 import {
   asciiToHexBytes,
   errorLog,
   getCompactDateTime,
   pathGen,
-} from "../utils/common-utils.js";
+} from "../utils/common-utils.ts";
 
 const busHD_01Alias = "BusHD_01";
 let baseAssets = null;
