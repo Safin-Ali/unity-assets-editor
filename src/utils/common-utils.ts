@@ -158,7 +158,7 @@ export const hexToInt = ({
   endian = "big",
   sum = false,
 }: hexToIntParams): number => {
-  if (endian === "big") {
+  if (endian === "little") {
     hexBytes = hexBytes.reverse();
   }
 
@@ -196,14 +196,14 @@ export const intToHexBytes = (
   let tempInt = int;
 
   while (tempInt > 0) {
-    const byte = (tempInt & 0xff).toString(16).padStart(2, "0");
+    const byte = (tempInt & 0xff).toString(16).padStart(2, "0").toUpperCase();
     hexArray.unshift(byte);
     tempInt >>= 8;
   }
 
   const hexBytes = hexArray.length > 0 ? hexArray : ["00"];
 
-  return endian === "big" ? hexBytes.reverse() : hexBytes;
+  return endian === "little" ? hexBytes.reverse() : hexBytes;
 };
 
 /**
