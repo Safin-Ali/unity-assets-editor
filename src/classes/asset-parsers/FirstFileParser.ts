@@ -61,7 +61,7 @@ export class FirstFileParser {
             !this.firstFile.valueInt || !this.firstFile.endian ||
             !this.firstFile.offsetInt
         ) {
-            throw new Error("First file Interface Issue");
+            throw new Error("First File Interface Issue");
         }
 
         const { endian } = currentVersion.firstFile;
@@ -78,6 +78,7 @@ export class FirstFileParser {
         }
 
         this.hexIns.replaceBytes(this.firstFile.offsetInt, newFirstFileBytes);
+        this.initFirstFileParser();
     }
 }
 

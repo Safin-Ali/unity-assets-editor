@@ -10,7 +10,7 @@ export interface AssetParserLabels {
 
 export interface ModifyMetaSizeParams {
     int: number;
-    operation: "inc" | "dec";
+    operation?: "inc" | "dec";
 }
 
 export interface DependencyParserArg {
@@ -21,7 +21,7 @@ export interface DependencyParserArg {
 export interface ModifyDependencySizeParams {
     name: string;
     offset:number;
-    operation: "add" | "remove";
+    operation?: "add" | "remove";
 }
 
 export interface ExistDependencies {

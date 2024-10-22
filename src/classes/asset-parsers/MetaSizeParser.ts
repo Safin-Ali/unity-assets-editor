@@ -81,5 +81,6 @@ export class MetaSizeParser {
         }
 
         this.hexIns.replaceBytes(this.metaSize.offsetInt, newMetaSizeBytes);
+        this.initMetaSizeParser();
     }
 }
