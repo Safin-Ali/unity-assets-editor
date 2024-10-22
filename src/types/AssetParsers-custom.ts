@@ -12,3 +12,27 @@ export interface ModifyMetaSizeParams {
     int: number;
     operation: "inc" | "dec";
 }
+
+export interface DependencyParserArg {
+    buffer:string[],
+    offset:number
+}
+
+export interface ModifyDependencySizeParams {
+    name: string;
+    offset:number;
+    operation: "add" | "remove";
+}
+
+export interface ExistDependencies {
+    name:string;
+    index:number;
+    startOffset:number;
+    endOffset:number;
+}
+
+export type FirstFileParserParams = Omit<AssetParserLabels,"offsetHex">;
+
+export type ModifyFirstFileParams = ModifyMetaSizeParams;
+
+export type AssetSizeParserParams = Omit<AssetParserLabels,"offsetHex">;
