@@ -205,3 +205,13 @@ export const intToHexBytes = (
 
   return endian === "big" ? hexBytes.reverse() : hexBytes;
 };
+
+/**
+ * Generates an array of null bytes represented as strings.
+ *
+ * @param {number} length - The number of null bytes to generate.
+ * @returns {string[]} An array filled with the string "00".
+ */
+export const getNullBytes = (length: number): string[] => {
+  return new Array(length).fill("00");
+};

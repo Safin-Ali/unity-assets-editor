@@ -1,4 +1,3 @@
-import { UABE_BUSSID } from "../enum/app-enums.ts";
 import type { EndianessValue } from "./AssetParsers-custom.ts";
 
 /**
@@ -26,4 +25,5 @@ export interface hexToIntParams {
 export interface intToHexBytesParams
   extends Omit<hexToIntParams, "sum" | "hexBytes"> {
   int: number;
+  endian?:EndianessValue
 }
