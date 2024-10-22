@@ -8,6 +8,21 @@ const versionStructure = [
       end:24,
       endian:UABE_BUSSID.Endianess.B
     },
+    dep:{
+      endian:UABE_BUSSID.Endianess.L,
+      nullByte:22,
+      dependencyByteLeng:32
+    },
+    firstFile:{
+      endian:UABE_BUSSID.Endianess.B,
+      start:38,
+      end:40
+    },
+    assetSize:{
+      endian:UABE_BUSSID.Endianess.B,
+      start: 30,
+      end:32
+    },
     iss: {
       mono: {
         alias: 4128,
