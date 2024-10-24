@@ -63,21 +63,19 @@ export class AssetSizeParser {
         ) {
             throw new Error("Asset Size Interface Issue");
         }
-
-        const { endian } = currentVersion.firstFile;
-        let newFirstFileBytes: string[] = intToHexBytes({
+        let newAssetSizeBytes: string[] = intToHexBytes({
             int: this.assetSize.valueInt + int,
-            endian,
+            endian:this.assetSize.endian,
         });
 
         if (operation === "dec") {
-            newFirstFileBytes = intToHexBytes({
+            newAssetSizeBytes = intToHexBytes({
                 int: this.assetSize.valueInt - int,
-                endian,
+                endian:this.assetSize.endian,
             });
         }
 
-        this.hexIns.replaceBytes(this.assetSize.offsetInt, newFirstFileBytes);
+        this.hexIns.replaceBytes(this.assetSize.offsetInt, newAssetSizeBytes);
         this.initAssetSizeParser();
     }
 }
