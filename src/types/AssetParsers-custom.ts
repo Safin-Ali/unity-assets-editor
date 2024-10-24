@@ -36,3 +36,9 @@ export type FirstFileParserParams = Omit<AssetParserLabels,"offsetHex">;
 export type ModifyFirstFileParams = ModifyMetaSizeParams;
 
 export type AssetSizeParserParams = Omit<AssetParserLabels,"offsetHex">;
+
+export type ClassSizeParserArg = DependencyParserArg;
+
+export type ClassSizeParams = Omit<AssetParserLabels,"offsetHex">;
+
+export type ModifyClassSize = ModifyMetaSizeParams

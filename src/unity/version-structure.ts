@@ -23,6 +23,9 @@ const versionStructure = [
       start: 30,
       end:32
     },
+    classSize:{
+      endian:UABE_BUSSID.Endianess.L
+    },
     iss: {
       mono: {
         alias: 4128,
