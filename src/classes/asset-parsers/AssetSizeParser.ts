@@ -68,6 +68,9 @@ export class AssetSizeParser {
             endian:this.assetSize.endian,
         });
 
+        console.log(newAssetSizeBytes);
+        
+
         if (operation === "dec") {
             newAssetSizeBytes = intToHexBytes({
                 int: this.assetSize.valueInt - int,
