@@ -15,6 +15,10 @@ const versionStructure = [
     },
     firstFile:{
       endian:UABE_BUSSID.Endianess.B,
+      offsetBoundary:{
+        status:true,
+        boundary:0x10
+      },
       start:38,
       end:40
     },

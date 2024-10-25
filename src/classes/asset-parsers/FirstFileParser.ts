@@ -1,9 +1,10 @@
 import type {
     FirstFileParserParams,
-    ModifyFirstFileParams
+    ModifyFirstFileParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
-import { hexToInt } from "../../utils/common-utils.ts";
+import { getNullBytes } from "../../utils/common-utils.ts";
+import { hexToInt, padHexOffset } from "../../utils/common-utils.ts";
 import { intToHexBytes } from "../../utils/common-utils.ts";
 import HexHandler from "../HexHandler.ts";
 
@@ -17,7 +18,7 @@ export class FirstFileParser {
         offsetInt: null,
         endian: null,
         valueHex: null,
-        valueInt: null
+        valueInt: null,
     };
 
     /**
@@ -38,7 +39,7 @@ export class FirstFileParser {
      * @private
      */
     private initFirstFileParser() {
-        const { endian, start,end } = currentVersion.firstFile;
+        const { endian, start, end } = currentVersion.firstFile;
         this.firstFile.endian = endian;
         this.firstFile.offsetInt = start;
 
@@ -64,7 +65,7 @@ export class FirstFileParser {
             throw new Error("First File Interface Issue");
         }
 
-        const { endian } = currentVersion.firstFile;
+        const { endian, offsetBoundary } = currentVersion.firstFile;
         let newFirstFileBytes: string[] = intToHexBytes({
             int: this.firstFile.valueInt + int,
             endian,
@@ -78,7 +79,50 @@ export class FirstFileParser {
         }
 
         this.hexIns.replaceBytes(this.firstFile.offsetInt, newFirstFileBytes);
+
+        this.initFirstFileParser();
+
+        if (offsetBoundary.status && offsetBoundary.boundary) {
+            this.firstFileOffsetAlignFix();
+        }
+        
+    }
+
+    /**
+     * Adjusts the first file's offset to align with the specified boundary.
+     * 
+     * This method checks if the current offset ends at the specified offset boundary.
+     * If not, it calculates the necessary padding and updates the buffer with the
+     * aligned offset, inserting null bytes as needed to ensure correct alignment.
+     *
+     * @private
+     * @throws {Error} If the first file values are not properly initialized.
+     */
+    private firstFileOffsetAlignFix() {
+        if (
+            !this.firstFile.valueInt || !this.firstFile.valueHex ||
+            !this.firstFile.offsetInt
+        ) {
+            throw new Error("First File Interface Issue");
+        }
+        
+        // Calculate gap length and new hex bytes for alignment
+        const { gapLength, newHexBytes } = padHexOffset({
+            hexBytes: this.firstFile.valueHex,
+            offsetBoundary: currentVersion.firstFile.offsetBoundary.boundary,
+        });
+        
+        // Generate null bytes for padding
+        const nullBytes = getNullBytes(gapLength);
+
+        // Replace original bytes with aligned bytes
+        this.hexIns.replaceBytes(this.firstFile.offsetInt, newHexBytes);
+        
+        // Insert padding null bytes at the appropriate position
+        this.hexIns.insertBytes(this.firstFile.valueInt, nullBytes);
+        
+        // Re-initialize the first file parser to reflect updates
         this.initFirstFileParser();
     }
-}
 
+}
