@@ -73,9 +73,9 @@ export const asciiToHexBytes = (ascii: string): string[] => {
  * @throws {Error} Throws an error if sliceValue is negative.
  */
 export const endSlice = (
-  originalVal: string | any[],
+  originalVal: string | unknown[],
   sliceValue: number,
-): string | any[] => {
+): string | unknown[] => {
   if (sliceValue < 0) {
     throw new Error("sliceValue must be non-negative");
   }
