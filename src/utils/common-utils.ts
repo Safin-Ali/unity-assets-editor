@@ -8,6 +8,8 @@ import type {
   ErrorLogParams,
   hexToIntParams,
   intToHexBytesParams,
+  PadHexOffsetParams,
+  PadHexOffsetResult,
 } from "../types/common-utils-custom.ts";
 
 /**
@@ -214,4 +216,42 @@ export const intToHexBytes = (
  */
 export const getNullBytes = (length: number): string[] => {
   return new Array(length).fill("00");
+};
+
+/**
+ * Pads an array of hexadecimal values to align the offset to a specified boundary.
+ *
+ * @param params - Object containing the parameters.
+ * @param params.hexBytes - Array of hex strings to be concatenated and checked for alignment.
+ * @param params.offsetBoundary - Optional hex boundary value to align with, default is `0x10`.
+ *
+ * @returns {PadHexOffsetResult} - An object containing the new hex array and the gap length.
+ */
+export const padHexOffset = (
+  { hexBytes, offsetBoundary = 0x10 }: PadHexOffsetParams,
+): PadHexOffsetResult => {
+  const concatenatedHex = hexBytes.join(""); // Concatenate hex values
+  const hexValue = parseInt(concatenatedHex, 16); // Parse the concatenated hex as an integer
+  const remainder = hexValue % offsetBoundary; // Check for alignment
+
+  if (remainder !== 0) {
+    const gapLength = offsetBoundary - remainder; // Calculate the gap needed
+    const lastByteValue = parseInt(hexBytes[hexBytes.length - 1], 16) +
+      gapLength;
+    const paddedLastByte = lastByteValue.toString(16).toUpperCase().padStart(
+      2,
+      "0",
+    );
+
+    return {
+      newHexBytes: [...hexBytes.slice(0, -1), paddedLastByte],
+      gapLength: gapLength,
+    };
+  } else {
+    console.log("Offset ends on the boundary.");
+    return {
+      newHexBytes: hexBytes, // No padding needed
+      gapLength: 0,
+    };
+  }
 };

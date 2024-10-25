@@ -27,3 +27,24 @@ export interface intToHexBytesParams
   int: number;
   endian?:EndianessValue
 }
+
+/**
+ * Interface for the parameters required by the `padHexOffset` function.
+ */
+export interface PadHexOffsetParams {
+    hexBytes: string[];
+    
+    /** The boundary offset for alignment, defaults to `0x10` if not provided. */
+    offsetBoundary?: number;
+}
+
+/**
+ * Interface for the result returned by the `padHexOffset` function.
+ */
+export interface PadHexOffsetResult {
+    /** New hex bytes with padding if necessary. */
+    newHexBytes: string[];
+    
+    /** Number of gap bytes added to reach the boundary offset. */
+    gapLength: number;
+}
