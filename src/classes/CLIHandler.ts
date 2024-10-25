@@ -5,8 +5,8 @@ import { Select } from "https://deno.land/x/cliffy@v0.25.7/prompt/mod.ts";
 import { selectors } from "../utils/cli-seelctors.ts";
 import { warningLog } from "../utils/common-utils.ts";
 import { appCloseKeyEvtWrapper } from "../event/keypress-event.ts";
-import { TSPHandler } from "./TSPHandler.js";
 import { UABE_BUSSID } from "../enum/app-enums.ts";
+import { TSHandler } from "./TSHandler.ts";
 
 /**
  * CLIHandler is responsible for initializing the command-line interface
@@ -50,7 +50,7 @@ export class CLIHandler {
     if (rootAns === UABE_BUSSID.Prompt.IncreaseSkinSlots) {
       new ISSHandler(this.assetsDir!);
     } else if (rootAns === UABE_BUSSID.Prompt.TrafficSpawn) {
-      new TSPHandler(this.assetsDir!);
+      new TSHandler(this.assetsDir!);
     }
   }
 }
