@@ -110,7 +110,7 @@ export class DependencyParser {
         const { dependencyByteLeng, nullByte } = currentVersion.dep;
         const newInsertBytes = dependencyByteLeng + nullByte;
 
-        new AssetSizeParser(this.buffer).modifyAssetSize({ int: newInsertBytes });
+        new AssetSizeParser(this.buffer).modifyAssetSize({ int: newInsertBytes+10 });
         new FirstFileParser(this.buffer).modifyFirstFile({ int: newInsertBytes });
         new MetaSizeParser(this.buffer).modifyMetaSize({ int: newInsertBytes });
 
