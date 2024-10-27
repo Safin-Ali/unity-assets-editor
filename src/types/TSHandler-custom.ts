@@ -3,3 +3,9 @@ export interface TSPromptValues {
     trafficMonoText: string | null;
     spawnType: boolean | null;
 }
+
+export interface ManipulateSpeedTypeParams {
+    buffer: string[],
+    firstFileOffset: number,
+    index:number
+}

@@ -4,14 +4,21 @@ import {
     brightRed,
     brightYellow,
 } from "https://deno.land/std@0.221.0/fmt/colors.ts";
-import type { TSPromptValues } from "../types/TSHandler-custom.ts";
+import type {
+    ManipulateSpeedTypeParams,
+    TSPromptValues,
+} from "../types/TSHandler-custom.ts";
 import { Input, Toggle } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 import { restartApp } from "../event/app-event.ts";
 import { validators } from "../utils/cli-seelctors.ts";
 import FileHandler from "./FileHandler.ts";
-import { pathGen } from "../utils/common-utils.ts";
+import { hexToInt, intToHexBytes, pathGen } from "../utils/common-utils.ts";
 import { DependencyParser } from "./asset-parsers/DependencyParser.ts";
 import { readFileSync } from "node:fs";
+import { ClassSizeParser } from "./asset-parsers/ClassSizeParser.ts";
+import { FirstFileParser } from "./asset-parsers/FirstFileParser.ts";
+import HexHandler from "./HexHandler.ts";
+import { AssetSizeParser } from "./asset-parsers/AssetSizeParser.ts";
 
 export class TSHandler {
     private assetsDirectory: string[];
@@ -158,7 +165,94 @@ export class TSHandler {
                 offset: depParserIns.existDependencies.slice(-1)[0].endOffset,
                 name,
             });
+            const { firstFile } = new FirstFileParser(buffer);
+
+            this.manipulateSpeedType({
+                buffer,
+                firstFileOffset: firstFile.valueInt!,
+                index: depParserIns.existDependencies.slice(-1)[0].index,
+            });
             console.dir(`added => ${brightGreen(name)}`);
         });
+    }
+
+    /**
+     * Modifies the speed type settings in the provided buffer.
+     *
+     * This method updates the class size, calculates the offsets for "oftens"
+     * and "sometimes" values, and replaces or inserts bytes in the buffer
+     * according to the specified spawn type.
+     *
+     * @param arg - An object containing parameters for manipulation.
+     * @param arg.buffer - The buffer to modify.
+     * @param arg.firstFileOffset - The offset of the first file.
+     * @param arg.index - The index of the dependency to manipulate.
+     */
+    private manipulateSpeedType(arg: ManipulateSpeedTypeParams): void {
+        const classSizeParser = new ClassSizeParser({
+            buffer: arg.buffer,
+            offset: 128,
+        });
+
+        // Modify class size to a fixed value of 12
+        classSizeParser.modifyClassSize({ int: 12 });
+
+        const hexHandlerIns = new HexHandler(arg.buffer);
+        const scriptId = arg.firstFileOffset + 48;
+        const pptrByteLength = 12;
+
+        // Retrieve "oftens" value from the buffer
+        const oftensValue = hexToInt({
+            hexBytes: arg.buffer.slice(scriptId, scriptId + 4),
+            endian: "little",
+            sum: true,
+        });
+
+        const oftens = {
+            start: scriptId,
+            end: scriptId + 4,
+            value: oftensValue,
+        };
+
+        // Retrieve "sometimes" value from the buffer
+        const sometimesValue = hexToInt({
+            hexBytes: arg.buffer.slice(
+                (scriptId + 4) + (oftens.value * pptrByteLength),
+                (scriptId + 4) + (oftens.value * pptrByteLength) + 4,
+            ),
+            endian: "little",
+            sum: true,
+        });
+
+        const sometimes = {
+            start: (scriptId + 4) + (oftens.value * pptrByteLength),
+            end: (scriptId + 4) + (oftens.value * pptrByteLength) + 4,
+            value: sometimesValue,
+        };
+
+        // Create new PPtr BSITCarSettings path and file ID hex byte
+        const newPPtr = [
+            ...intToHexBytes({ int: arg.index, minLength: 4 }),
+            ...intToHexBytes({ int: 1, minLength: 8 }),
+        ];
+
+        // Replace or insert bytes based on the spawn type
+        if (!this.tspPromptValues.spawnType) {
+            hexHandlerIns.replaceBytes(
+                oftens.start,
+                intToHexBytes({ int: oftens.value + 1, minLength: 4 }),
+            );
+            hexHandlerIns.insertBytes(sometimes.start, newPPtr);
+        } else {
+            hexHandlerIns.replaceBytes(
+                sometimes.start,
+                intToHexBytes({ int: sometimes.value + 1, minLength: 4 }),
+            );
+            hexHandlerIns.insertBytes(arg.buffer.length, newPPtr);
+        }
+
+        // Modify asset size to a fixed value of 12
+        const assetSizeParser = new AssetSizeParser(arg.buffer);
+        assetSizeParser.modifyAssetSize({ int: 12 });
     }
 }
