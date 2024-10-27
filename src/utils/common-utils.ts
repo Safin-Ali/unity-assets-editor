@@ -239,15 +239,13 @@ export const padHexOffset = (
 
   if (remainder !== 0) {
     const gapLength = offsetBoundary - remainder; // Calculate the gap needed
-    const lastByteValue = parseInt(hexBytes[hexBytes.length - 1], 16) +
-      gapLength;
-    const paddedLastByte = lastByteValue.toString(16).toUpperCase().padStart(
-      2,
-      "0",
-    );
+    const newHexBytes = intToHexBytes({
+      int:hexValue+gapLength,
+      minLength:hexBytes.length
+    })
 
     return {
-      newHexBytes: [...hexBytes.slice(0, -1), paddedLastByte],
+      newHexBytes,
       gapLength: gapLength,
     };
   } else {
