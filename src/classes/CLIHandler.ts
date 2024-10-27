@@ -1,6 +1,6 @@
 import { pathGen } from "../utils/common-utils.ts";
 import { existsSync, mkdirSync, readdirSync } from "node:fs";
-import { ISSHandler } from "./ISSHandler.js";
+import { ISSHandler } from "./ISSHandler.ts";
 import { Select } from "https://deno.land/x/cliffy@v0.25.7/prompt/mod.ts";
 import { selectors } from "../utils/cli-seelctors.ts";
 import { warningLog } from "../utils/common-utils.ts";

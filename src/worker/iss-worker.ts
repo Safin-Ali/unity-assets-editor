@@ -7,9 +7,16 @@ import {
   getCompactDateTime,
   pathGen,
 } from "../utils/common-utils.ts";
+import type { BaseAssets } from "../types/ISSHandler-custom.ts";
 
 const busHD_01Alias = "BusHD_01";
-let baseAssets = null;
+let baseAssets: BaseAssets = {
+  mono: null,
+  obj: null,
+  skin: null,
+  skinAlias: null,
+  quantity: 0,
+};
 
 let trafficMono = "";
 
@@ -26,8 +33,12 @@ self.onmessage = (event) => {
       trafficMono,
     );
     self.postMessage("done");
-  } catch (error) {
-    errorLog(`\n ${error.message}`);
+  // deno-lint-ignore no-explicit-any
+  } catch (error: any) {
+    errorLog({
+      error: error,
+      msg: `\n ${error.message}`,
+    });
     self.postMessage("error");
   }
 };
@@ -36,7 +47,7 @@ self.onmessage = (event) => {
  * Manipulates the Mono, Object, and Skin files based on the provided index string.
  * @param {string} indexStr - The index string for the current file iteration.
  */
-const manipulateFiles = (indexStr) => {
+const manipulateFiles = (indexStr: string) => {
   manipulateMono(indexStr);
   manipulateObj(indexStr);
   manipulateSkin(indexStr);
@@ -47,20 +58,20 @@ const manipulateFiles = (indexStr) => {
  * @param {string} indexStr - The index string for the current file iteration.
  * @throws Will log an error if the manipulation fails.
  */
-const manipulateMono = (indexStr) => {
+const manipulateMono = (indexStr: string) => {
   try {
-    const newObjDep = baseAssets.obj.slice(0, 30) + indexStr;
-    const newMonoFile = baseAssets.mono.slice(0, 30) + indexStr;
+    const newObjDep = baseAssets.obj!.slice(0, 30) + indexStr;
+    const newMonoFile = baseAssets.mono!.slice(0, 30) + indexStr;
 
     trafficMono = trafficMono + `${newMonoFile}\n`;
 
     const fileIns = new FileHandler({
-      inputPath: pathGen("assets", baseAssets.mono),
+      inputPath: pathGen("assets", baseAssets.mono!),
       outPath: pathGen("output", newMonoFile),
     });
 
-    const hexIns = new HexHandler(fileIns.buffer);
-    const objDepOffset = hexIns.findIndex(asciiToHexBytes(baseAssets.obj));
+    const hexIns = new HexHandler(fileIns.buffer!);
+    const objDepOffset = hexIns.findIndex(asciiToHexBytes(baseAssets.obj!));
     const monoAliasOffset = hexIns.findIndex(
       asciiToHexBytes(busHD_01Alias),
     );
@@ -83,23 +94,23 @@ const manipulateMono = (indexStr) => {
  * @param {string} indexStr - The index string for the current file iteration.
  * @throws Will log an error if the manipulation fails.
  */
-const manipulateObj = (indexStr) => {
+const manipulateObj = (indexStr: string) => {
   try {
-    const newMonoDep = baseAssets.mono.slice(0, 30) + indexStr;
-    const newSkinDep = baseAssets.skin.slice(0, 30) + indexStr;
-    const newObjFile = baseAssets.obj.slice(0, 30) + indexStr;
+    const newMonoDep = baseAssets.mono!.slice(0, 30) + indexStr;
+    const newSkinDep = baseAssets.skin!.slice(0, 30) + indexStr;
+    const newObjFile = baseAssets.obj!.slice(0, 30) + indexStr;
 
     const fileIns = new FileHandler({
-      inputPath: pathGen("assets", baseAssets.obj),
+      inputPath: pathGen("assets", baseAssets.obj!),
       outPath: pathGen("output", newObjFile),
     });
 
-    const hexIns = new HexHandler(fileIns.buffer);
+    const hexIns = new HexHandler(fileIns.buffer!);
     const monoDepOffset = hexIns.findIndex(
-      asciiToHexBytes(baseAssets.mono),
+      asciiToHexBytes(baseAssets.mono!),
     );
     const skinDepOffset = hexIns.findIndex(
-      asciiToHexBytes(baseAssets.skin),
+      asciiToHexBytes(baseAssets.skin!),
     );
     const monoAliasOffset = hexIns.findIndex(
       asciiToHexBytes(busHD_01Alias),
@@ -130,20 +141,20 @@ const manipulateObj = (indexStr) => {
  * @param {string} indexStr - The index string for the current file iteration.
  * @throws Will log an error if the manipulation fails.
  */
-const manipulateSkin = (indexStr) => {
+const manipulateSkin = (indexStr: string) => {
   try {
-    const newSkinFile = baseAssets.skin.slice(0, 30) + indexStr;
+    const newSkinFile = baseAssets.skin!.slice(0, 30) + indexStr;
 
     const fileIns = new FileHandler({
-      inputPath: pathGen("assets", baseAssets.skin),
+      inputPath: pathGen("assets", baseAssets.skin!),
       outPath: pathGen("output", newSkinFile),
     });
 
-    const hexIns = new HexHandler(fileIns.buffer);
+    const hexIns = new HexHandler(fileIns.buffer!);
     const skinAliasOffset = hexIns.findIndex(
-      asciiToHexBytes(baseAssets.skinAlias),
+      asciiToHexBytes(baseAssets.skinAlias!),
     );
-    const newSkinAlias = `${baseAssets.skinAlias.slice(0, -2)}${indexStr}`;
+    const newSkinAlias = `${baseAssets.skinAlias!.slice(0, -2)}${indexStr}`;
 
     // Modify Skin Alias in Mat and Tex
     hexIns.replaceBytes(

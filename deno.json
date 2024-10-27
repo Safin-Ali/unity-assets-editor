@@ -6,6 +6,12 @@
     "compile": "deno compile --allow-read --allow-write --allow-env --target x86_64-pc-windows-msvc --icon ./icon.ico --include src/worker/iss-worker.js src/app.ts",
     "rc": "deno cache --reload src/app.ts"
   },
+  "compilerOptions": {
+    "lib": [
+      "deno.window",
+      "webworker"
+    ]
+  },
   "fmt": {
     "include": ["src/"],
     "indentWidth": 2,
