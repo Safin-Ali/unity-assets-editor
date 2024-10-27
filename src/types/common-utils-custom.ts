@@ -25,7 +25,8 @@ export interface hexToIntParams {
 export interface intToHexBytesParams
   extends Omit<hexToIntParams, "sum" | "hexBytes"> {
   int: number;
-  endian?:EndianessValue
+  endian?:EndianessValue,
+  minLength?:number
 }
 
 /**

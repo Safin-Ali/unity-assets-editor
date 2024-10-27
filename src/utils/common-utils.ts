@@ -188,7 +188,7 @@ export const hexToInt = ({
  * @throws {Error} Throws an error if the input integer is not valid (i.e., not an integer).
  */
 export const intToHexBytes = (
-  { int, endian = "big" }: intToHexBytesParams,
+  { int, endian = "big", minLength = 0 }: intToHexBytesParams,
 ): string[] => {
   if (!Number.isInteger(int)) {
     throw new Error("The input must be a valid integer.");
@@ -203,7 +203,10 @@ export const intToHexBytes = (
     tempInt >>= 8;
   }
 
-  const hexBytes = hexArray.length > 0 ? hexArray : ["00"];
+  let hexBytes = hexArray.length > 0 ? hexArray : ["00"];
+
+  if(hexBytes.length < minLength && minLength > 0) 
+    hexBytes = [...hexBytes,...getNullBytes(minLength-1)];
 
   return endian === "little" ? hexBytes.reverse() : hexBytes;
 };
