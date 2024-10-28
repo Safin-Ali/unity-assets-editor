@@ -29,7 +29,7 @@ export default class FileHandler {
     try {
       const fileContent = readFileSync(inputPath, "hex");
       this.buffer = fileContent.toUpperCase().match(/.{1,2}/g) || [];
-    // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
     } catch (error: any) {
       errorLog({ error });
     }

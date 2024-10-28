@@ -1,4 +1,8 @@
-import type { FoundSequence,InsertResult,ReplaceResult } from "../types/HexHandler-custom.ts";
+import type {
+  FoundSequence,
+  InsertResult,
+  ReplaceResult,
+} from "../types/HexHandler-custom.ts";
 
 /**
  * A class to handle operations on a buffer of hexadecimal values.
@@ -26,7 +30,9 @@ export default class HexHandler {
    */
   findIndex(bytesArr: string[]): FoundSequence[] {
     if (!Array.isArray(bytesArr) || !bytesArr.length) {
-      throw new Error("The bytesArr argument must be a non-empty hex byte array.");
+      throw new Error(
+        "The bytesArr argument must be a non-empty hex byte array.",
+      );
     }
 
     const result: FoundSequence[] = [];
@@ -59,7 +65,9 @@ export default class HexHandler {
    */
   replaceBytes(startIndex: number, newBytes: string[]): ReplaceResult {
     if (!Array.isArray(newBytes) || !newBytes.length) {
-      throw new Error("The newBytes argument must be a non-empty hex byte array.");
+      throw new Error(
+        "The newBytes argument must be a non-empty hex byte array.",
+      );
     }
 
     if (startIndex < 0 || startIndex >= this.buffer.length) {
@@ -91,7 +99,9 @@ export default class HexHandler {
    */
   insertBytes(startIndex: number, newBytes: string[]): InsertResult {
     if (!Array.isArray(newBytes) || !newBytes.length) {
-      throw new Error("The newBytes argument must be a non-empty hex byte array.");
+      throw new Error(
+        "The newBytes argument must be a non-empty hex byte array.",
+      );
     }
 
     if (startIndex < 0 || startIndex > this.buffer.length) {
@@ -117,12 +127,17 @@ export default class HexHandler {
    * @throws {Error} Throws an error if `position` or `byteLength` are not positive values or are out of bounds.
    */
   removeBytes(position: number, byteLength: number): string[] {
-    if (position === null || typeof position === "undefined" || byteLength === null || typeof byteLength === "undefined") {
+    if (
+      position === null || typeof position === "undefined" ||
+      byteLength === null || typeof byteLength === "undefined"
+    ) {
       throw new Error("The position and byteLength arguments must be defined.");
     }
 
     if (position < 0 || byteLength < 0) {
-      throw new Error("The position and byteLength arguments must be non-negative.");
+      throw new Error(
+        "The position and byteLength arguments must be non-negative.",
+      );
     }
 
     if (position >= this.buffer.length) {

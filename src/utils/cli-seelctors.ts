@@ -19,15 +19,15 @@ export const validators: Validator[] = [
       const num = Number(input);
       if (!input || isNaN(num)) {
         errorLog({
-          error:null,
-          msg:"Please provide a number."
+          error: null,
+          msg: "Please provide a number.",
         });
         return false;
       }
       if (num > 99) {
         errorLog({
-          msg:"Please provide a value less than 100.",
-          error:null
+          msg: "Please provide a value less than 100.",
+          error: null,
         });
         return false;
       }

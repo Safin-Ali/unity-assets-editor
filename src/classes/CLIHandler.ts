@@ -29,7 +29,7 @@ export class CLIHandler {
     }
     this.assetsDir = readdirSync(assetsDir);
 
-    if (!this.assetsDir ||this.assetsDir.length < 1) {
+    if (!this.assetsDir || this.assetsDir.length < 1) {
       warningLog("no base assets found");
       appCloseKeyEvtWrapper();
       return;
@@ -46,18 +46,18 @@ export class CLIHandler {
    */
   private async initCLIHandler(): Promise<void> {
     try {
-          const rootAns = await Select.prompt(selectors[0]);
-    
-    if (rootAns === UABE_BUSSID.Prompt.IncreaseSkinSlots) {
-      new ISSHandler(this.assetsDir!);
-    } else if (rootAns === UABE_BUSSID.Prompt.TrafficSpawn) {
-      new TSHandler(this.assetsDir!);
-    }
-    // deno-lint-ignore no-explicit-any
-    } catch (error:any) {
+      const rootAns = await Select.prompt(selectors[0]);
+
+      if (rootAns === UABE_BUSSID.Prompt.IncreaseSkinSlots) {
+        new ISSHandler(this.assetsDir!);
+      } else if (rootAns === UABE_BUSSID.Prompt.TrafficSpawn) {
+        new TSHandler(this.assetsDir!);
+      }
+      // deno-lint-ignore no-explicit-any
+    } catch (error: any) {
       errorLog({
-        error
-      })
+        error,
+      });
     }
   }
 }

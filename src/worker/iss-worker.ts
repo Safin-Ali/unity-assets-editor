@@ -33,7 +33,7 @@ self.onmessage = (event) => {
       trafficMono,
     );
     self.postMessage("done");
-  // deno-lint-ignore no-explicit-any
+    // deno-lint-ignore no-explicit-any
   } catch (error: any) {
     errorLog({
       error: error,

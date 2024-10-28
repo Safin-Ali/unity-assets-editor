@@ -5,8 +5,9 @@ import type { EndianessValue } from "./AssetParsers-custom.ts";
  */
 export interface ErrorLogParams {
   msg?: string; // The error message to log, default is "Something is wrong".
+  // deno-lint-ignore no-explicit-any
   error: any; // The error object to log.
-  cb?:() => void
+  cb?: () => void;
 }
 
 /**
@@ -26,27 +27,27 @@ export interface hexToIntParams {
 export interface intToHexBytesParams
   extends Omit<hexToIntParams, "sum" | "hexBytes"> {
   int: number;
-  endian?:EndianessValue,
-  minLength?:number
+  endian?: EndianessValue;
+  minLength?: number;
 }
 
 /**
  * Interface for the parameters required by the `padHexOffset` function.
  */
 export interface PadHexOffsetParams {
-    hexBytes: string[];
-    
-    /** The boundary offset for alignment, defaults to `0x10` if not provided. */
-    offsetBoundary?: number;
+  hexBytes: string[];
+
+  /** The boundary offset for alignment, defaults to `0x10` if not provided. */
+  offsetBoundary?: number;
 }
 
 /**
  * Interface for the result returned by the `padHexOffset` function.
  */
 export interface PadHexOffsetResult {
-    /** New hex bytes with padding if necessary. */
-    newHexBytes: string[];
-    
-    /** Number of gap bytes added to reach the boundary offset. */
-    gapLength: number;
+  /** New hex bytes with padding if necessary. */
+  newHexBytes: string[];
+
+  /** Number of gap bytes added to reach the boundary offset. */
+  gapLength: number;
 }

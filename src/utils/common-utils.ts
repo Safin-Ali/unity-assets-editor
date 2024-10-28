@@ -103,12 +103,12 @@ const logWithColor = (msg: string, colorFn: (msg: string) => string): void => {
  * @param params.error - The error object to log.
  */
 export const errorLog = (
-  { msg = "Something is wrong", error, cb = restartApp}: ErrorLogParams,
+  { msg = "Something is wrong", error, cb = restartApp }: ErrorLogParams,
 ): void => {
   const denoEnv = Deno.env.get("UABE_BUSSID");
   if (typeof denoEnv === "string" && parseInt(denoEnv)) {
     logWithColor(msg, brightRed);
-    cb()
+    cb();
   } else {
     error && console.error(error);
   }
@@ -207,8 +207,9 @@ export const intToHexBytes = (
 
   let hexBytes = hexArray.length > 0 ? hexArray : ["00"];
 
-  if(hexBytes.length < minLength && minLength > 0) 
-    hexBytes = [...hexBytes,...getNullBytes(minLength-1)];
+  if (hexBytes.length < minLength && minLength > 0) {
+    hexBytes = [...hexBytes, ...getNullBytes(minLength - 1)];
+  }
 
   return endian === "little" ? hexBytes.reverse() : hexBytes;
 };
@@ -242,9 +243,9 @@ export const padHexOffset = (
   if (remainder !== 0) {
     const gapLength = offsetBoundary - remainder; // Calculate the gap needed
     const newHexBytes = intToHexBytes({
-      int:hexValue+gapLength,
-      minLength:hexBytes.length
-    })
+      int: hexValue + gapLength,
+      minLength: hexBytes.length,
+    });
 
     return {
       newHexBytes,

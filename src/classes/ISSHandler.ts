@@ -18,7 +18,7 @@ import type { BaseAssets } from "../types/ISSHandler-custom.ts";
 export class ISSHandler {
   private assetsDirectory: string[] = [];
 
-  private baseAssets:BaseAssets = {
+  private baseAssets: BaseAssets = {
     mono: null,
     obj: null,
     skin: null,
@@ -35,22 +35,22 @@ export class ISSHandler {
       this.assetsDirectory = assetDirectory;
       this.displayAssetPaths();
       this.initializeISSPrompt();
-    // deno-lint-ignore no-explicit-any
-    } catch (error:any) {
+      // deno-lint-ignore no-explicit-any
+    } catch (error: any) {
       errorLog({
-        error
-      })
+        error,
+      });
     }
   }
 
-      /**
-     * Logs asset paths in the console.
-     */
-    private displayAssetPaths(): void {
-        this.assetsDirectory.forEach((path, index) => {
-            console.log(brightYellow(`${index} `), brightBlue(`${path}`));
-        });
-    }
+  /**
+   * Logs asset paths in the console.
+   */
+  private displayAssetPaths(): void {
+    this.assetsDirectory.forEach((path, index) => {
+      console.log(brightYellow(`${index} `), brightBlue(`${path}`));
+    });
+  }
 
   /**
    * Initializes the ISS asking process to gather user input.
@@ -62,7 +62,9 @@ export class ISSHandler {
         parseInt(await this.promptForBaseAssetIndex("Input traffic Mono index"))
       ];
       this.baseAssets.obj = this.assetsDirectory[
-        parseInt(await this.promptForBaseAssetIndex("Input traffic Object index"))
+        parseInt(
+          await this.promptForBaseAssetIndex("Input traffic Object index"),
+        )
       ];
       this.baseAssets.skin = this.assetsDirectory[
         parseInt(await this.promptForBaseAssetIndex("Input traffic Skin index"))
@@ -86,12 +88,11 @@ export class ISSHandler {
       if (confirmIss) {
         this.initializeISS();
       }
-    // deno-lint-ignore no-explicit-any
-    } catch (error:any) {
-
+      // deno-lint-ignore no-explicit-any
+    } catch (error: any) {
       errorLog({
-        error
-      })
+        error,
+      });
     }
   }
 
@@ -101,7 +102,7 @@ export class ISSHandler {
    * @returns {Promise<string>} - The user input.
    * @private
    */
-  private async promptForBaseAssetIndex(message:string): Promise<string> {
+  private async promptForBaseAssetIndex(message: string): Promise<string> {
     return await Input.prompt({
       message,
       validate: validators[0].cb,
@@ -125,7 +126,7 @@ export class ISSHandler {
 
     worker.postMessage(this.baseAssets);
 
-    worker.onmessage = (message) => {      
+    worker.onmessage = (message) => {
       if (message.data === "error") {
         restartApp();
         spinner.error({ text: "ISS Handling Worker Failed" });

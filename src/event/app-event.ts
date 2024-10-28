@@ -7,11 +7,19 @@ interface AppEvents {
 
 // Extend EventEmitter with your custom event types
 class AppEmitter extends EventEmitter {
-  override emit<K extends keyof AppEvents>(event: K, ...args: AppEvents[K] extends undefined ? [] : [AppEvents[K]]): boolean {
+  override emit<K extends keyof AppEvents>(
+    event: K,
+    ...args: AppEvents[K] extends undefined ? [] : [AppEvents[K]]
+  ): boolean {
     return super.emit(event, ...args);
   }
 
-  override on<K extends keyof AppEvents>(event: K, listener: (...args: AppEvents[K] extends undefined ? [] : [AppEvents[K]]) => void): this {
+  override on<K extends keyof AppEvents>(
+    event: K,
+    listener: (
+      ...args: AppEvents[K] extends undefined ? [] : [AppEvents[K]]
+    ) => void,
+  ): this {
     return super.on(event, listener);
   }
 }
