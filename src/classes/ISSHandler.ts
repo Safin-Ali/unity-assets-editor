@@ -37,8 +37,9 @@ export class ISSHandler {
       this.initializeISSPrompt();
     // deno-lint-ignore no-explicit-any
     } catch (error:any) {
-      errorLog(error.message);
-      restartApp();
+      errorLog({
+        error
+      })
     }
   }
 
@@ -85,8 +86,12 @@ export class ISSHandler {
       if (confirmIss) {
         this.initializeISS();
       }
-    } catch (_) {
-      throw new Error("Error initializing ISS asking:");
+    // deno-lint-ignore no-explicit-any
+    } catch (error:any) {
+
+      errorLog({
+        error
+      })
     }
   }
 
@@ -120,7 +125,7 @@ export class ISSHandler {
 
     worker.postMessage(this.baseAssets);
 
-    worker.onmessage = (message) => {
+    worker.onmessage = (message) => {      
       if (message.data === "error") {
         restartApp();
         spinner.error({ text: "ISS Handling Worker Failed" });

@@ -17,7 +17,6 @@ export default class FileHandler {
    * @param {FileHandlerOptions} options - Configuration options for the FileHandler.
    * @param {string} options.inputPath - Path to the input file to read.
    * @param {string} [options.outPath=""] - Path to the output file to write. Defaults to an empty string.
-   * @throws {Error} Throws an error if the input file cannot be read.
    */
 
   constructor({ inputPath, outPath }: FileHandlerOptions) {
@@ -30,19 +29,18 @@ export default class FileHandler {
     try {
       const fileContent = readFileSync(inputPath, "hex");
       this.buffer = fileContent.toUpperCase().match(/.{1,2}/g) || [];
+    // deno-lint-ignore no-explicit-any
     } catch (error: any) {
-      errorLog({ error: error });
+      errorLog({ error });
     }
   }
 
   /**
    * Writes the buffer to the specified output file in hexadecimal format.
-   * @throws {Error} Throws an error if the file cannot be written.
    */
   writeBuffer() {
     if (typeof this.destPath !== "string") {
       errorLog({ error: null, msg: "The destPath must be a string." });
-      restartApp();
       return;
     }
 

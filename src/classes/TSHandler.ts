@@ -1,7 +1,7 @@
+// deno-lint-ignore-file no-explicit-any
 import {
     brightBlue,
     brightGreen,
-    brightRed,
     brightYellow,
 } from "https://deno.land/std@0.221.0/fmt/colors.ts";
 import type {
@@ -12,7 +12,12 @@ import { Input, Toggle } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 import { restartApp } from "../event/app-event.ts";
 import { validators } from "../utils/cli-seelctors.ts";
 import FileHandler from "./FileHandler.ts";
-import { hexToInt, intToHexBytes, pathGen } from "../utils/common-utils.ts";
+import {
+    errorLog,
+    hexToInt,
+    intToHexBytes,
+    pathGen,
+} from "../utils/common-utils.ts";
 import { DependencyParser } from "./asset-parsers/DependencyParser.ts";
 import { readFileSync } from "node:fs";
 import { ClassSizeParser } from "./asset-parsers/ClassSizeParser.ts";
@@ -21,7 +26,7 @@ import HexHandler from "./HexHandler.ts";
 import { AssetSizeParser } from "./asset-parsers/AssetSizeParser.ts";
 
 export class TSHandler {
-    private assetsDirectory: string[];
+    private assetsDirectory: string[] = [];
     private monoAssetTextBuffer: string[] = [];
     private tspPromptValues: TSPromptValues = {
         trafficSpawnMono: null,
@@ -30,9 +35,15 @@ export class TSHandler {
     };
 
     constructor(assetDirectory: string[]) {
-        this.assetsDirectory = assetDirectory;
-        this.displayAssetPaths();
-        this.initializeTSPrompt();
+        try {
+            this.assetsDirectory = assetDirectory;
+            this.displayAssetPaths();
+            this.initializeTSPrompt();
+        } catch (error: any) {
+            errorLog({
+                error,
+            });
+        }
     }
 
     /**
@@ -67,13 +78,11 @@ export class TSHandler {
             if (confirmPrompt) {
                 this.initializeTS();
             }
-            // deno-lint-ignore no-explicit-any
         } catch (error: any) {
-            throw new Error(
-                `Error occurred in ${
-                    brightRed(`#initializeTSPPrompt`)
-                } method in TSHandler: ${error.message}`,
-            );
+            errorLog({
+                error,
+                msg: "Error initializing TSPrompt values. Please check your inputs.",
+            });
         } finally {
             restartApp();
         }
@@ -114,8 +123,9 @@ export class TSHandler {
     private initializeTS(): void {
         try {
             if (!this.tspPromptValues.trafficSpawnMono) {
-                throw new Error("Traffic Spawn Mono Issue");
+                throw new Error("Traffic Spawn Mono index is invalid.");
             }
+
             this.initializeMonoAssetBuffer();
             const fileHandler = new FileHandler({
                 inputPath: pathGen(
@@ -135,8 +145,10 @@ export class TSHandler {
                 this.manipulateDependencies(fileHandler.buffer);
                 fileHandler.writeBuffer();
             }
-        } catch (error) {
-            console.log(error);
+        } catch (error: any) {
+            errorLog({
+                error,
+            });
         }
     }
 
@@ -148,6 +160,12 @@ export class TSHandler {
             pathGen("assets", this.tspPromptValues.trafficMonoText!),
             "ascii",
         ).split("\n").filter((path) => path);
+
+        if (!this.monoAssetTextBuffer || this.monoAssetTextBuffer.length < 1) {
+            throw new Error(
+                `No valid Mono assets found in ${this.tspPromptValues.trafficMonoText}`,
+            );
+        }
     }
 
     /**
@@ -155,25 +173,33 @@ export class TSHandler {
      * @param buffer - Buffer of dependency data to modify.
      */
     private manipulateDependencies(buffer: string[]): void {
-        const depParserIns = new DependencyParser({
-            buffer: buffer,
-            offset: 152,
-        });
-
-        this.monoAssetTextBuffer.forEach((name) => {
-            depParserIns.modifyDependencySize({
-                offset: depParserIns.existDependencies.slice(-1)[0].endOffset,
-                name,
+        try {
+            const depParserIns = new DependencyParser({
+                buffer: buffer,
+                offset: 152,
             });
-            const { firstFile } = new FirstFileParser(buffer);
 
-            this.manipulateSpeedType({
-                buffer,
-                firstFileOffset: firstFile.valueInt!,
-                index: depParserIns.existDependencies.slice(-1)[0].index,
+            this.monoAssetTextBuffer.forEach((name) => {
+                depParserIns.modifyDependencySize({
+                    offset:
+                        depParserIns.existDependencies.slice(-1)[0].endOffset,
+                    name,
+                });
+                const { firstFile } = new FirstFileParser(buffer);
+
+                this.manipulateSpeedType({
+                    buffer,
+                    firstFileOffset: firstFile.valueInt!,
+                    index: depParserIns.existDependencies.slice(-1)[0].index,
+                });
+                console.dir(`added => ${brightGreen(name)}`);
             });
-            console.dir(`added => ${brightGreen(name)}`);
-        });
+        } catch (error: any) {
+            errorLog({
+                error,
+                msg: `Error while manipulate dependencies operation`,
+            });
+        }
     }
 
     /**
@@ -189,70 +215,77 @@ export class TSHandler {
      * @param arg.index - The index of the dependency to manipulate.
      */
     private manipulateSpeedType(arg: ManipulateSpeedTypeParams): void {
-        const classSizeParser = new ClassSizeParser({
-            buffer: arg.buffer,
-            offset: 128,
-        });
+        try {
+            const classSizeParser = new ClassSizeParser({
+                buffer: arg.buffer,
+                offset: 128,
+            });
 
-        // Modify class size to a fixed value of 12
-        classSizeParser.modifyClassSize({ int: 12 });
+            // Modify class size to a fixed value of 12
+            classSizeParser.modifyClassSize({ int: 12 });
 
-        const hexHandlerIns = new HexHandler(arg.buffer);
-        const scriptId = arg.firstFileOffset + 48;
-        const pptrByteLength = 12;
+            const hexHandlerIns = new HexHandler(arg.buffer);
+            const scriptId = arg.firstFileOffset + 48;
+            const pptrByteLength = 12;
 
-        // Retrieve "oftens" value from the buffer
-        const oftensValue = hexToInt({
-            hexBytes: arg.buffer.slice(scriptId, scriptId + 4),
-            endian: "little",
-            sum: true,
-        });
+            // Retrieve "oftens" value from the buffer
+            const oftensValue = hexToInt({
+                hexBytes: arg.buffer.slice(scriptId, scriptId + 4),
+                endian: "little",
+                sum: true,
+            });
 
-        const oftens = {
-            start: scriptId,
-            end: scriptId + 4,
-            value: oftensValue,
-        };
+            const oftens = {
+                start: scriptId,
+                end: scriptId + 4,
+                value: oftensValue,
+            };
 
-        // Retrieve "sometimes" value from the buffer
-        const sometimesValue = hexToInt({
-            hexBytes: arg.buffer.slice(
-                (scriptId + 4) + (oftens.value * pptrByteLength),
-                (scriptId + 4) + (oftens.value * pptrByteLength) + 4,
-            ),
-            endian: "little",
-            sum: true,
-        });
+            // Retrieve "sometimes" value from the buffer
+            const sometimesValue = hexToInt({
+                hexBytes: arg.buffer.slice(
+                    (scriptId + 4) + (oftens.value * pptrByteLength),
+                    (scriptId + 4) + (oftens.value * pptrByteLength) + 4,
+                ),
+                endian: "little",
+                sum: true,
+            });
 
-        const sometimes = {
-            start: (scriptId + 4) + (oftens.value * pptrByteLength),
-            end: (scriptId + 4) + (oftens.value * pptrByteLength) + 4,
-            value: sometimesValue,
-        };
+            const sometimes = {
+                start: (scriptId + 4) + (oftens.value * pptrByteLength),
+                end: (scriptId + 4) + (oftens.value * pptrByteLength) + 4,
+                value: sometimesValue,
+            };
 
-        // Create new PPtr BSITCarSettings path and file ID hex byte
-        const newPPtr = [
-            ...intToHexBytes({ int: arg.index, minLength: 4 }),
-            ...intToHexBytes({ int: 1, minLength: 8 }),
-        ];
+            // Create new PPtr BSITCarSettings path and file ID hex byte
+            const newPPtr = [
+                ...intToHexBytes({ int: arg.index, minLength: 4 }),
+                ...intToHexBytes({ int: 1, minLength: 8 }),
+            ];
 
-        // Replace or insert bytes based on the spawn type
-        if (!this.tspPromptValues.spawnType) {
-            hexHandlerIns.replaceBytes(
-                oftens.start,
-                intToHexBytes({ int: oftens.value + 1, minLength: 4 }),
-            );
-            hexHandlerIns.insertBytes(sometimes.start, newPPtr);
-        } else {
-            hexHandlerIns.replaceBytes(
-                sometimes.start,
-                intToHexBytes({ int: sometimes.value + 1, minLength: 4 }),
-            );
-            hexHandlerIns.insertBytes(arg.buffer.length, newPPtr);
+            // Replace or insert bytes based on the spawn type
+            if (!this.tspPromptValues.spawnType) {
+                hexHandlerIns.replaceBytes(
+                    oftens.start,
+                    intToHexBytes({ int: oftens.value + 1, minLength: 4 }),
+                );
+                hexHandlerIns.insertBytes(sometimes.start, newPPtr);
+            } else {
+                hexHandlerIns.replaceBytes(
+                    sometimes.start,
+                    intToHexBytes({ int: sometimes.value + 1, minLength: 4 }),
+                );
+                hexHandlerIns.insertBytes(arg.buffer.length, newPPtr);
+            }
+
+            // Modify asset size to a fixed value of 12
+            const assetSizeParser = new AssetSizeParser(arg.buffer);
+            assetSizeParser.modifyAssetSize({ int: 12 });
+        } catch (error: any) {
+            errorLog({
+                error,
+                msg: "Error while manipulating speed type",
+            });
         }
-
-        // Modify asset size to a fixed value of 12
-        const assetSizeParser = new AssetSizeParser(arg.buffer);
-        assetSizeParser.modifyAssetSize({ int: 12 });
     }
 }

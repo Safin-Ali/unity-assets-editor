@@ -6,6 +6,7 @@ import type { EndianessValue } from "./AssetParsers-custom.ts";
 export interface ErrorLogParams {
   msg?: string; // The error message to log, default is "Something is wrong".
   error: any; // The error object to log.
+  cb?:() => void
 }
 
 /**

@@ -1,4 +1,4 @@
-import { pathGen } from "../utils/common-utils.ts";
+import { errorLog, pathGen } from "../utils/common-utils.ts";
 import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { ISSHandler } from "./ISSHandler.ts";
 import { Select } from "https://deno.land/x/cliffy@v0.25.7/prompt/mod.ts";
@@ -45,12 +45,19 @@ export class CLIHandler {
    * @returns {Promise<void>}
    */
   private async initCLIHandler(): Promise<void> {
-    const rootAns = await Select.prompt(selectors[0]);
+    try {
+          const rootAns = await Select.prompt(selectors[0]);
     
     if (rootAns === UABE_BUSSID.Prompt.IncreaseSkinSlots) {
       new ISSHandler(this.assetsDir!);
     } else if (rootAns === UABE_BUSSID.Prompt.TrafficSpawn) {
       new TSHandler(this.assetsDir!);
+    }
+    // deno-lint-ignore no-explicit-any
+    } catch (error:any) {
+      errorLog({
+        error
+      })
     }
   }
 }

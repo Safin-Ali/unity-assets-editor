@@ -1,9 +1,10 @@
+// deno-lint-ignore-file no-explicit-any
 import type {
     AssetSizeParserParams,
-    ModifyFirstFileParams
+    ModifyFirstFileParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
-import { hexToInt } from "../../utils/common-utils.ts";
+import { errorLog, hexToInt } from "../../utils/common-utils.ts";
 import { intToHexBytes } from "../../utils/common-utils.ts";
 import HexHandler from "../HexHandler.ts";
 
@@ -38,13 +39,19 @@ export class AssetSizeParser {
      * @private
      */
     private initAssetSizeParser() {
-        const { endian, start, end } = currentVersion.assetSize;
-        this.assetSize.endian = endian;
-        this.assetSize.offsetInt = start;
+        try {
+            const { endian, start, end } = currentVersion.assetSize;
+            this.assetSize.endian = endian;
+            this.assetSize.offsetInt = start;
 
-        const assetSizeHex = this.buffer.slice(start, end);
-        this.assetSize.valueHex = assetSizeHex;
-        this.assetSize.valueInt = hexToInt({ hexBytes: assetSizeHex });
+            const assetSizeHex = this.buffer.slice(start, end);
+            this.assetSize.valueHex = assetSizeHex;
+            this.assetSize.valueInt = hexToInt({ hexBytes: assetSizeHex });
+        } catch (error: any) {
+            errorLog({
+                error,
+            });
+        }
     }
 
     /**
@@ -57,25 +64,35 @@ export class AssetSizeParser {
      * @throws {Error} If the asset size values are not properly initialized.
      */
     public modifyAssetSize({ int, operation = "inc" }: ModifyFirstFileParams) {
-        if (
-            !this.assetSize.valueInt || !this.assetSize.endian ||
-            !this.assetSize.offsetInt
-        ) {
-            throw new Error("Asset Size Interface Issue");
-        }
-        let newAssetSizeBytes: string[] = intToHexBytes({
-            int: this.assetSize.valueInt + int,
-            endian:this.assetSize.endian,
-        });
+        try {
+            if (
+                !this.assetSize.valueInt || !this.assetSize.endian ||
+                !this.assetSize.offsetInt
+            ) {
+                throw new Error("Asset Size Interface Issue");
+            }
+            let newAssetSizeBytes: string[] = intToHexBytes({
+                int: this.assetSize.valueInt + int,
+                endian: this.assetSize.endian,
+            });
 
-        if (operation === "dec") {
-            newAssetSizeBytes = intToHexBytes({
-                int: this.assetSize.valueInt - int,
-                endian:this.assetSize.endian,
+            if (operation === "dec") {
+                newAssetSizeBytes = intToHexBytes({
+                    int: this.assetSize.valueInt - int,
+                    endian: this.assetSize.endian,
+                });
+            }
+
+            this.hexIns.replaceBytes(
+                this.assetSize.offsetInt,
+                newAssetSizeBytes,
+            );
+            this.initAssetSizeParser();
+        } catch (error: any) {
+            errorLog({
+                error,
+                msg: "Error while modify asset size",
             });
         }
-
-        this.hexIns.replaceBytes(this.assetSize.offsetInt, newAssetSizeBytes);
-        this.initAssetSizeParser();
     }
 }

@@ -14,7 +14,8 @@ import { errorLog } from "../utils/common-utils.ts";
 export const appCloseKeyEvtWrapper = (): void => {
   errorLog({
     msg:"Press ESC key to close",
-    error:null
+    error:null,
+    cb:() => {}
   });
   
   keypress().addEventListener("keydown", (input) => {

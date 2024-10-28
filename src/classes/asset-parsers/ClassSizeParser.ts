@@ -1,10 +1,10 @@
 import type {
     ClassSizeParams,
     ClassSizeParserArg,
-    ModifyFirstFileParams
+    ModifyFirstFileParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
-import { hexToInt } from "../../utils/common-utils.ts";
+import { errorLog, hexToInt } from "../../utils/common-utils.ts";
 import { intToHexBytes } from "../../utils/common-utils.ts";
 import HexHandler from "../HexHandler.ts";
 
@@ -27,7 +27,7 @@ export class ClassSizeParser {
      * @param {ClassSizeParserArg} arg - The argument containing the buffer and offset.
      * @param {string[]} arg.buffer - The buffer containing hex values as strings.
      * @param {number} arg.offset - The offset in the buffer to read the class size from.
-     * 
+     *
      * @throws {Error} If the offset is null.
      */
     constructor(arg: ClassSizeParserArg) {
@@ -47,12 +47,24 @@ export class ClassSizeParser {
      * @private
      */
     private initClassSize() {
-        const { endian } = currentVersion.classSize;
+        try {
+                    const { endian } = currentVersion.classSize;
         this.classSize.endian = endian;
 
-        const classSizeHex = this.buffer.slice(this.classSize.offsetInt!, this.classSize.offsetInt! + 2);
+        const classSizeHex = this.buffer.slice(
+            this.classSize.offsetInt!,
+            this.classSize.offsetInt! + 2,
+        );
         this.classSize.valueHex = classSizeHex;
-        this.classSize.valueInt = hexToInt({ hexBytes: classSizeHex, endian: this.classSize.endian });
+        this.classSize.valueInt = hexToInt({
+            hexBytes: classSizeHex,
+            endian: this.classSize.endian,
+        });
+        } catch (error) {
+            errorLog({
+                error
+            });
+        }
     }
 
     /**
@@ -61,30 +73,36 @@ export class ClassSizeParser {
      * @param {ModifyFirstFileParams} params - Parameters to modify the asset size.
      * @param {number} params.int - The integer value to modify the asset size by.
      * @param {"inc" | "dec"} [params.operation="inc"] - The operation to perform on the asset size value ("inc" to increase, "dec" to decrease).
-     * 
+     *
      * @throws {Error} If the asset size values are not properly initialized.
      */
     public modifyClassSize({ int, operation = "inc" }: ModifyFirstFileParams) {
-        if (!this.classSize.valueInt || !this.classSize.endian || this.classSize.offsetInt === null) {
-            throw new Error("Class Size Interface Issue");
+        try {
+            let newClassSizeValue = this.classSize.valueInt!;
+
+            if (operation === "inc") {
+                newClassSizeValue += int;
+            } else if (operation === "dec") {
+                newClassSizeValue! -= int;
+            } else {
+                throw new Error("Invalid operation. Use 'inc' or 'dec'.");
+            }
+
+            const newClassSizeBytes = intToHexBytes({
+                int: newClassSizeValue!,
+                endian: this.classSize.endian!,
+            });
+
+            this.hexIns.replaceBytes(
+                this.classSize.offsetInt!,
+                newClassSizeBytes,
+            );
+            this.initClassSize();
+        } catch (error) {
+            errorLog({
+                error,
+                msg: "Error while modify class size",
+            });
         }
-
-        let newClassSizeValue = this.classSize.valueInt;
-
-        if (operation === "inc") {
-            newClassSizeValue += int;
-        } else if (operation === "dec") {
-            newClassSizeValue -= int;
-        } else {
-            throw new Error("Invalid operation. Use 'inc' or 'dec'.");
-        }
-
-        const newClassSizeBytes = intToHexBytes({
-            int: newClassSizeValue,
-            endian: this.classSize.endian,
-        });
-
-        this.hexIns.replaceBytes(this.classSize.offsetInt, newClassSizeBytes);
-        this.initClassSize();
     }
 }

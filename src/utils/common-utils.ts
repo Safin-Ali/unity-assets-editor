@@ -11,6 +11,7 @@ import type {
   PadHexOffsetParams,
   PadHexOffsetResult,
 } from "../types/common-utils-custom.ts";
+import { restartApp } from "../event/app-event.ts";
 
 /**
  * Generates an absolute path by joining the current working directory with the provided file names.
@@ -102,11 +103,12 @@ const logWithColor = (msg: string, colorFn: (msg: string) => string): void => {
  * @param params.error - The error object to log.
  */
 export const errorLog = (
-  { msg = "Something is wrong", error }: ErrorLogParams,
+  { msg = "Something is wrong", error, cb = restartApp}: ErrorLogParams,
 ): void => {
   const denoEnv = Deno.env.get("UABE_BUSSID");
   if (typeof denoEnv === "string" && parseInt(denoEnv)) {
     logWithColor(msg, brightRed);
+    cb()
   } else {
     error && console.error(error);
   }

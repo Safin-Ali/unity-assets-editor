@@ -3,7 +3,7 @@ import type {
     ModifyMetaSizeParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
-import { hexToInt } from "../../utils/common-utils.ts";
+import { errorLog, hexToInt } from "../../utils/common-utils.ts";
 import { intToHexBytes } from "../../utils/common-utils.ts";
 import HexHandler from "../HexHandler.ts";
 
@@ -35,21 +35,27 @@ export class MetaSizeParser {
      * @private
      */
     private initMetaSizeParser() {
-        this.metaSize.endian = currentVersion.metaSize.endian;
+        try {
+            this.metaSize.endian = currentVersion.metaSize.endian;
 
-        this.metaSize.offsetInt = currentVersion.metaSize.start;
-        this.metaSize.offsetHex = intToHexBytes({
-            int: currentVersion.metaSize.start,
-        });
+            this.metaSize.offsetInt = currentVersion.metaSize.start;
+            this.metaSize.offsetHex = intToHexBytes({
+                int: currentVersion.metaSize.start,
+            });
 
-        const metaSizeHex = this.buffer.slice(
-            this.metaSize.offsetInt,
-            currentVersion.metaSize.end,
-        );
+            const metaSizeHex = this.buffer.slice(
+                this.metaSize.offsetInt,
+                currentVersion.metaSize.end,
+            );
 
-        this.metaSize.valueHex = metaSizeHex;
+            this.metaSize.valueHex = metaSizeHex;
 
-        this.metaSize.valueInt = hexToInt({ hexBytes: metaSizeHex });
+            this.metaSize.valueInt = hexToInt({ hexBytes: metaSizeHex });
+        } catch (error) {
+            errorLog({
+                error,
+            });
+        }
     }
 
     /**
@@ -62,25 +68,31 @@ export class MetaSizeParser {
      * @throws {Error} If the meta size values are not properly initialized.
      */
     public modifyMetaSize({ int, operation = "inc" }: ModifyMetaSizeParams) {
-        if (
-            !this.metaSize.valueInt || !this.metaSize.endian ||
-            !this.metaSize.offsetInt
-        ) {
-            throw new Error("Meta Size Interface Issue");
-        }
-        const endian = currentVersion.metaSize.endian;
-        let newMetaSizeBytes: string[] = intToHexBytes({
-            int: this.metaSize.valueInt + int,
-            endian,
-        });
-        if (operation === "dec") {
-            newMetaSizeBytes = intToHexBytes({
-                int: this.metaSize.valueInt - int,
+        try {
+            if (
+                !this.metaSize.valueInt || !this.metaSize.endian ||
+                !this.metaSize.offsetInt
+            ) {
+                throw new Error("Meta Size Interface Issue");
+            }
+            const endian = currentVersion.metaSize.endian;
+            let newMetaSizeBytes: string[] = intToHexBytes({
+                int: this.metaSize.valueInt + int,
                 endian,
             });
-        }
+            if (operation === "dec") {
+                newMetaSizeBytes = intToHexBytes({
+                    int: this.metaSize.valueInt - int,
+                    endian,
+                });
+            }
 
-        this.hexIns.replaceBytes(this.metaSize.offsetInt, newMetaSizeBytes);
-        this.initMetaSizeParser();
+            this.hexIns.replaceBytes(this.metaSize.offsetInt, newMetaSizeBytes);
+            this.initMetaSizeParser();
+        } catch (error) {
+            errorLog({
+                error,
+            });
+        }
     }
 }
