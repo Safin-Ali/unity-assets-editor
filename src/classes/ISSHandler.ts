@@ -9,7 +9,7 @@ import {
   brightYellow,
 } from "https://deno.land/std@0.221.0/fmt/colors.ts";
 import { restartApp } from "../event/app-event.ts";
-import { errorLog } from "../utils/common-utils.ts";
+import { errorLog, getBaseAssets } from "../utils/common-utils.ts";
 import type { BaseAssets } from "../types/ISSHandler-custom.ts";
 
 /**
@@ -30,9 +30,9 @@ export class ISSHandler {
    * Creates an instance of ISSHandler.
    * @param {string[]} assetDirectory - An array of asset directory paths.
    */
-  constructor(assetDirectory: string[]) {
+  constructor() {
     try {
-      this.assetsDirectory = assetDirectory;
+      this.assetsDirectory = getBaseAssets();
       this.displayAssetPaths();
       this.initializeISSPrompt();
       // deno-lint-ignore no-explicit-any

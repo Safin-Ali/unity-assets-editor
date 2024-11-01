@@ -1,5 +1,5 @@
-import { errorLog, pathGen } from "../utils/common-utils.ts";
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { errorLog, getBaseAssets, pathGen } from "../utils/common-utils.ts";
+import { existsSync, mkdirSync } from "node:fs";
 import { ISSHandler } from "./ISSHandler.ts";
 import { Select } from "https://deno.land/x/cliffy@v0.25.7/prompt/mod.ts";
 import { selectors } from "../utils/cli-seelctors.ts";
@@ -14,7 +14,6 @@ import { TSHandler } from "./TSHandler.ts";
  * a handler based on their input.
  */
 export class CLIHandler {
-  private assetsDir: string[] | null = null;
 
   /**
    * Creates an instance of CLIHandler.
@@ -27,9 +26,8 @@ export class CLIHandler {
     if (!existsSync(assetsDir)) {
       mkdirSync(assetsDir);
     }
-    this.assetsDir = readdirSync(assetsDir);
-
-    if (!this.assetsDir || this.assetsDir.length < 1) {
+    const dirContents = getBaseAssets();
+    if (!dirContents || dirContents.length < 1) {
       warningLog("no base assets found");
       appCloseKeyEvtWrapper();
       return;
@@ -49,9 +47,9 @@ export class CLIHandler {
       const rootAns = await Select.prompt(selectors[0]);
 
       if (rootAns === UABE_BUSSID.Prompt.IncreaseSkinSlots) {
-        new ISSHandler(this.assetsDir!);
+        new ISSHandler();
       } else if (rootAns === UABE_BUSSID.Prompt.TrafficSpawn) {
-        new TSHandler(this.assetsDir!);
+        new TSHandler();
       }
       // deno-lint-ignore no-explicit-any
     } catch (error: any) {

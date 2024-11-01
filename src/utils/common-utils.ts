@@ -12,6 +12,7 @@ import type {
   PadHexOffsetResult,
 } from "../types/common-utils-custom.ts";
 import { restartApp } from "../event/app-event.ts";
+import { readdirSync } from "node:fs";
 
 /**
  * Generates an absolute path by joining the current working directory with the provided file names.
@@ -259,3 +260,39 @@ export const padHexOffset = (
     };
   }
 };
+
+/**
+ * Converts all end-of-line sequences in a given text to LF format.
+ *
+ * This function normalizes line endings by replacing any occurrences of
+ * Windows-style CRLF (`\r\n`) or old Mac-style CR (`\r`) with Unix-style LF (`\n`).
+ *
+ * @param text - The input string containing text with mixed end-of-line sequences.
+ * @returns A new string with all end-of-line sequences converted to LF (`\n`).
+ * @throws {TypeError} If the input is not a string.
+ */
+export const convertToLF = (text: string): string => {
+  if (typeof text !== 'string') {
+    throw new TypeError('Input must be a string');
+  }
+  // Replace any form of newline (CRLF, CR) with LF
+  return text.replace(/\r\n|\r/g, '\n');
+}
+
+/**
+ * Retrieves a list of asset files from a specified directory.
+ *
+ * This function reads the contents of a given directory and returns an array of file names
+ * in that directory. By default, it reads from an "assets" directory. Throws an error
+ * if the path is not a string or if reading the directory fails (e.g., if the directory doesn't exist).
+ *
+ * @param path - The directory path to read from. Defaults to `"assets"`.
+ * @returns An array of strings representing the names of files in the specified directory.
+ * @throws {TypeError} If the `path` parameter is not a string.
+ */
+export const getBaseAssets = (path:string = "assets") => {
+    if (typeof path !== 'string') {
+    throw new TypeError('Path must be a string');
+    }
+    return readdirSync(path);
+} 

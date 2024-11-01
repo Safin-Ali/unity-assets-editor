@@ -13,7 +13,9 @@ import { restartApp } from "../event/app-event.ts";
 import { validators } from "../utils/cli-seelctors.ts";
 import FileHandler from "./FileHandler.ts";
 import {
+convertToLF,
   errorLog,
+  getBaseAssets,
   hexToInt,
   intToHexBytes,
   pathGen,
@@ -34,9 +36,9 @@ export class TSHandler {
     spawnType: null,
   };
 
-  constructor(assetDirectory: string[]) {
+  constructor() {
     try {
-      this.assetsDirectory = assetDirectory;
+      this.assetsDirectory = getBaseAssets();
       this.displayAssetPaths();
       this.initializeTSPrompt();
     } catch (error: any) {
@@ -156,10 +158,10 @@ export class TSHandler {
    * Populates mono asset buffer with lines from a specified file.
    */
   private initializeMonoAssetBuffer(): void {
-    this.monoAssetTextBuffer = readFileSync(
+    this.monoAssetTextBuffer = convertToLF(readFileSync(
       pathGen("assets", this.tspPromptValues.trafficMonoText!),
       "ascii",
-    ).split("\n").filter((path) => path);
+    )).split("\n").filter((path) => path);    
 
     if (!this.monoAssetTextBuffer || this.monoAssetTextBuffer.length < 1) {
       throw new Error(
