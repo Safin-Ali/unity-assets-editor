@@ -193,24 +193,19 @@ export const hexToInt = ({
 export const intToHexBytes = (
   { int, endian = "big", minLength = 0 }: intToHexBytesParams,
 ): string[] => {
-  if (!Number.isInteger(int)) {
+  if (!Number.isInteger(int) || int < 0) {
     throw new Error("The input must be a valid integer.");
   }
 
-  const hexArray: string[] = [];
-  let tempInt = int;
+  let hexStr = (int).toString(16);
 
-  while (tempInt > 0) {
-    const byte = (tempInt & 0xff).toString(16).padStart(2, "0").toUpperCase();
-    hexArray.unshift(byte);
-    tempInt >>= 8;
-  }
+  if(hexStr.length % 2)
+    hexStr = "0"+hexStr;
 
-  let hexBytes = hexArray.length > 0 ? hexArray : ["00"];
+  let hexBytes:string[] = hexStr.toUpperCase().match(/.{1,2}/g) || [];
 
-  if (hexBytes.length < minLength && minLength > 0) {
-    hexBytes = [...hexBytes, ...getNullBytes(minLength - 1)];
-  }
+  if (hexBytes.length < minLength && minLength > 0) 
+    hexBytes = [...getNullBytes(minLength - hexBytes.length),...hexBytes];  
 
   return endian === "little" ? hexBytes.reverse() : hexBytes;
 };
