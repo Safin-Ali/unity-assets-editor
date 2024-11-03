@@ -14,6 +14,7 @@ import {
   getNullBytes,
   hexBytesToAscii,
   hexToInt,
+  warningLog,
 } from "../../utils/common-utils.ts";
 import { intToHexBytes } from "../../utils/common-utils.ts";
 import HexHandler from "../HexHandler.ts";
@@ -28,7 +29,9 @@ export class DependencyParser {
   private buffer: string[];
   private hexIns: HexHandler;
   public existDependencies: ExistDependencies[] = [];
-  public dependency: AssetParserLabels = JSON.parse(JSON.stringify(initialAssetParserLabels));
+  public dependency: AssetParserLabels = JSON.parse(
+    JSON.stringify(initialAssetParserLabels),
+  );
 
   /**
    * Creates an instance of DependencyParser.
@@ -38,7 +41,7 @@ export class DependencyParser {
    */
   constructor(arg: DependencyParserArg) {
     this.buffer = arg.buffer;
-    this.dependency.offsetInt = arg.offset;    
+    this.dependency.offsetInt = arg.offset;
 
     if (!this.dependency.offsetInt) {
       throw new TypeError("Dependency Parser offsetInt field is null");
@@ -57,25 +60,25 @@ export class DependencyParser {
     try {
       const { dt, endian } = currentVersion.dep;
       this.dependency.endian = endian;
-      this.dependency.dt = dt;    
+      this.dependency.dt = dt;
 
       const { offsetInt } = this.dependency;
-      
+
       if (!offsetInt) {
         throw new TypeError("Wrong Data Type in Dependency Parser");
       }
 
       const depValueHex = this.buffer.slice(
         offsetInt,
-        offsetInt+(this.dependency.dt-1)
-      );      
+        offsetInt + (this.dependency.dt - 1),
+      );
 
       this.dependency.valueHex = depValueHex;
       this.dependency.valueInt = hexToInt({
         hexBytes: depValueHex,
-        endian:this.dependency.endian
+        endian: this.dependency.endian,
       });
-      
+
       this.initGetExistDependency();
     } catch (error: any) {
       errorLog({
@@ -96,7 +99,6 @@ export class DependencyParser {
   public modifyDependencySize(
     { name, offset, operation = "add" }: ModifyDependencySizeParams,
   ) {
-
     const { dt, endian, offsetInt, valueInt } = this.dependency;
     if (
       !valueInt || !endian ||
@@ -106,20 +108,24 @@ export class DependencyParser {
     }
 
     const adjustment = operation === "add" ? 1 : -1;
-    
+
     const newDepBytes = intToHexBytes({
       int: valueInt + adjustment,
       endian,
       minLength: (dt - 1),
     });
 
-    operation === "add"
-      ? this.addDependency(offset, name)
-      : this.removeDependency(offset);
-    
-    this.hexIns.replaceBytes(offsetInt, newDepBytes);
-    this.initDependencyParser();
-    
+    let dependencyManipulateSts = false;
+    if (operation === "add") {
+      dependencyManipulateSts = this.addDependency(offset, name);
+    } else {
+      dependencyManipulateSts = this.removeDependency(name);
+    }
+
+    if (dependencyManipulateSts) {
+      this.hexIns.replaceBytes(offsetInt, newDepBytes);
+      this.initDependencyParser();
+    }
   }
 
   /**
@@ -127,10 +133,19 @@ export class DependencyParser {
    *
    * @param {number} offset - The offset where the new dependency will be inserted.
    * @param {string} newDepName - The name of the new dependency.
+   * @returns {boolean} - True if the dependency was added successfully, otherwise false.
    */
-  private addDependency(offset: number, newDepName: string) {
+  private addDependency(offset: number, newDepName: string): boolean {
     try {
-      const { dependencyByteLeng, nullByte } = currentVersion.dep;    
+      if (
+        this.existDependencies.length > 0 &&
+        this.dependencyExist(newDepName)
+      ) {
+        warningLog(`${newDepName} already exist`);
+        return false;
+      }
+
+      const { dependencyByteLeng, nullByte } = currentVersion.dep;
 
       this.hexIns.insertBytes(offset, [
         ...getNullBytes(nullByte),
@@ -148,40 +163,36 @@ export class DependencyParser {
       new MetaSizeParser(this.buffer).modifyMetaSize({
         int: newInsertBytes,
       });
-      
-      this.existDependencies.push({
-        name: newDepName,
-        index: this.existDependencies.length + 1,
-        startOffset: offset,
-        endOffset: offset + (nullByte + newDepName.length),
-      });
 
-
-      
+      return true;
     } catch (error) {
       errorLog({
         error,
         msg: "Error while add dependencies",
       });
+      return false;
     }
   }
 
   /**
    * Removes an existing dependency from the buffer.
    *
-   * @param {number} offset - The offset of the dependency to remove.
-   * @throws {TypeError} If the dependency does not exist.
+   * @param {string} name - The name of the dependency to remove.
+   * @returns {boolean} - True if the dependency was removed successfully, otherwise false.
    */
-  private removeDependency(offset: number) {
+  private removeDependency(name: string): boolean {
     try {
-      const existDependency = this.existDependencies.find((
-        { startOffset },
-      ) => startOffset === offset);
 
-      if (!existDependency) {
-        throw new TypeError(
-          "Failed to remove dependency because it does not exist",
-        );
+      if (this.existDependencies.length < 0) {
+        warningLog(`no dependencies exist`);
+        return false;
+      }
+
+      const existDependency = this.dependencyExist(name);;
+
+      if(!existDependency) {
+         warningLog(`${name} dependency exist`);
+         return false
       }
 
       const { dependencyByteLeng, nullByte } = currentVersion.dep;
@@ -190,7 +201,7 @@ export class DependencyParser {
       new AssetSizeParser(this.buffer).modifyAssetSize({
         int: removeInsertBytes,
       });
-      this.hexIns.removeBytes(offset, existDependency.name.length);
+      this.hexIns.removeBytes(existDependency.startOffset, existDependency.name.length);
 
       new FirstFileParser(this.buffer).modifyFirstFile({
         int: removeInsertBytes,
@@ -202,11 +213,14 @@ export class DependencyParser {
       });
 
       this.existDependencies.splice(existDependency.index - 1, 1);
+
+      return true;
     } catch (error) {
       errorLog({
         error,
         msg: "Error while remove dependencies",
       });
+      return false;
     }
   }
 
@@ -219,17 +233,19 @@ export class DependencyParser {
     this.existDependencies = [];
     try {
       const { dependencyByteLeng, nullByte } = currentVersion.dep;
-      const { offsetInt, dt, valueInt, endian } = this.dependency;     
+      const { offsetInt, dt, valueInt, endian } = this.dependency;
 
-      if(!valueInt)
+      if (!valueInt) {
         return;
-      
-      if (!endian ||
+      }
+
+      if (
+        !endian ||
         !offsetInt || !dt
       ) {
         throw new TypeError("Wrong Data Type in Dependency Parser");
       }
-      let currDepOffset = offsetInt! + (dt - 1);      
+      let currDepOffset = offsetInt! + (dt - 1);
 
       for (let index = 1; index <= this.dependency.valueInt!; index++) {
         let currDepByteLeng = dependencyByteLeng;
@@ -257,7 +273,7 @@ export class DependencyParser {
           startOffset: currDepOffset,
           endOffset,
         });
-        
+
         currDepOffset = endOffset;
       }
     } catch (error) {
@@ -276,5 +292,15 @@ export class DependencyParser {
    */
   private isGlobalManager(depName: string): boolean {
     return endSlice(depName, 7) === "globalgamemanagers.assets";
+  }
+
+  /**
+   * Checks if a dependency exists by its name.
+   *
+   * @param {string} dependencyName - The name of the dependency to check.
+   * @returns {ExistDependencies | null} - The existing dependency if found, otherwise null.
+   */
+  public dependencyExist (dependencyName:string):ExistDependencies | null   {
+    return this.existDependencies.find(({ name }) => name === dependencyName) || null;
   }
 }
