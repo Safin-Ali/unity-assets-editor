@@ -16,12 +16,12 @@ export enum Endianess {
 export enum AssetsDataTypes {
   Int = 4,
   Sint64 = 8,
-  UInt8 = 1
+  UInt8 = 1,
 }
 
 export const UABE_BUSSID = {
   ENV,
   Prompt,
   Endianess,
-  AssetsDataTypes
+  AssetsDataTypes,
 };

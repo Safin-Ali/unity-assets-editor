@@ -189,10 +189,16 @@ export class TSHandler {
         });
         const { firstFile } = new FirstFileParser(buffer);
 
+        let depIndex = depParserIns.existDependencies.slice(-1)[0].index;
+
+        if (depParserIns.dependencyExist(name)) {
+          depIndex = depParserIns.dependencyExist(name)!.index;
+        }
+
         this.manipulateSpeedType({
           buffer,
           firstFileOffset: firstFile.valueInt!,
-          index: depParserIns.existDependencies.slice(-1)[0].index,
+          index: depIndex,
         });
         console.dir(`added => ${brightGreen(name)}`);
       });
@@ -256,7 +262,7 @@ export class TSHandler {
       const sometimes = {
         start: (scriptId + pptr.arraySize) + (oftens.value * pptrByteLength),
         end: (scriptId + pptr.arraySize) + (oftens.value * pptrByteLength) +
-        pptr.arraySize,
+          pptr.arraySize,
         value: sometimesValue,
       };
 
@@ -289,7 +295,11 @@ export class TSHandler {
       } else {
         hexHandlerIns.replaceBytes(
           sometimes.start,
-          intToHexBytes({ int: sometimes.value + 1, endian:pptr.endian, minLength: pptr.fileId }),
+          intToHexBytes({
+            int: sometimes.value + 1,
+            endian: pptr.endian,
+            minLength: pptr.fileId,
+          }),
         );
         hexHandlerIns.insertBytes(arg.buffer.length, newPPtr);
       }

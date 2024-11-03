@@ -14,7 +14,6 @@ import { TSHandler } from "./TSHandler.ts";
  * a handler based on their input.
  */
 export class CLIHandler {
-
   /**
    * Creates an instance of CLIHandler.
    * Initializes the assets directory and checks for the presence of assets.

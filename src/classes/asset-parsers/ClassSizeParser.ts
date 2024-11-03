@@ -1,7 +1,7 @@
 import {
-initialAssetParserLabels,
   type ClassSizeParams,
   type ClassSizeParserArg,
+  initialAssetParserLabels,
   type ModifyFirstFileParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
@@ -15,7 +15,9 @@ import HexHandler from "../HexHandler.ts";
 export class ClassSizeParser {
   private buffer: string[];
   private hexIns: HexHandler;
-  public classSize: ClassSizeParams = JSON.parse(JSON.stringify(initialAssetParserLabels));
+  public classSize: ClassSizeParams = JSON.parse(
+    JSON.stringify(initialAssetParserLabels),
+  );
 
   /**
    * Creates an instance of ClassSizeParser.
@@ -44,7 +46,7 @@ export class ClassSizeParser {
    */
   private initClassSize() {
     try {
-      const { endian,dt } = currentVersion.classSize;
+      const { endian, dt } = currentVersion.classSize;
       this.classSize.endian = endian;
       this.classSize.dt = dt;
 
@@ -77,7 +79,7 @@ export class ClassSizeParser {
     try {
       let newClassSizeValue = this.classSize.valueInt!;
 
-      const {dt,endian} = this.classSize;
+      const { dt, endian } = this.classSize;
 
       if (operation === "inc") {
         newClassSizeValue += int;
@@ -87,13 +89,14 @@ export class ClassSizeParser {
         throw new TypeError("Invalid operation. Use 'inc' or 'dec'.");
       }
 
-      if(!endian || !dt)
+      if (!endian || !dt) {
         throw new TypeError("Class Size Parser Wrong Data Type");
+      }
 
       const newClassSizeBytes = intToHexBytes({
         int: newClassSizeValue!,
         endian,
-        minLength:dt
+        minLength: dt,
       });
 
       this.hexIns.replaceBytes(

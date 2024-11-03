@@ -6,16 +6,16 @@ export interface AssetParserLabels {
   valueHex: string[] | null;
   valueInt: number | null;
   endian: EndianessValue | null;
-  dt:AssetsDataType | null;
+  dt: AssetsDataType | null;
 }
 
-export const initialAssetParserLabels:AssetParserLabels = {
-  dt:null,
-  endian:null,
-  offsetInt:null,
-  valueHex:null,
-  valueInt:null
-}
+export const initialAssetParserLabels: AssetParserLabels = {
+  dt: null,
+  endian: null,
+  offsetInt: null,
+  valueHex: null,
+  valueInt: null,
+};
 
 export interface ModifyMetaSizeParams {
   int: number;

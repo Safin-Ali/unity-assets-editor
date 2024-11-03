@@ -1,6 +1,6 @@
 import {
-initialAssetParserLabels,
   type AssetParserLabels,
+  initialAssetParserLabels,
   type ModifyMetaSizeParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
@@ -11,7 +11,9 @@ import HexHandler from "../HexHandler.ts";
 export class MetaSizeParser {
   private buffer: string[];
   private hexIns: HexHandler;
-  public metaSize: AssetParserLabels = JSON.parse(JSON.stringify(initialAssetParserLabels));
+  public metaSize: AssetParserLabels = JSON.parse(
+    JSON.stringify(initialAssetParserLabels),
+  );
   /**
    * Creates an instance of MetaSizeParser.
    *
@@ -31,23 +33,23 @@ export class MetaSizeParser {
    */
   private initMetaSizeParser() {
     try {
-      const {dt,endian,start} = currentVersion.metaSize;
+      const { dt, endian, start } = currentVersion.metaSize;
       this.metaSize.endian = endian;
-      
+
       this.metaSize.offsetInt = start;
       this.metaSize.dt = dt;
 
       const metaSizeHex = this.buffer.slice(
         start,
-        (start+dt),
-      );      
-      
+        start + dt,
+      );
+
       this.metaSize.valueHex = metaSizeHex;
-      
+
       this.metaSize.valueInt = hexToInt({
         hexBytes: metaSizeHex,
-        endian
-      });    
+        endian,
+      });
     } catch (error) {
       errorLog({
         error,
@@ -66,7 +68,7 @@ export class MetaSizeParser {
    */
   public modifyMetaSize({ int, operation = "inc" }: ModifyMetaSizeParams) {
     try {
-      const {dt,endian,valueInt,offsetInt} = this.metaSize;
+      const { dt, endian, valueInt, offsetInt } = this.metaSize;
       if (
         !valueInt || !endian ||
         !offsetInt || !dt
@@ -76,19 +78,19 @@ export class MetaSizeParser {
       let newMetaSizeBytes: string[] = intToHexBytes({
         int: valueInt + int,
         endian,
-        minLength:dt
-      });      
-      
+        minLength: dt,
+      });
+
       if (operation === "dec") {
         newMetaSizeBytes = intToHexBytes({
           int: valueInt - int,
           endian,
-          minLength:dt
+          minLength: dt,
         });
       }
 
       this.hexIns.replaceBytes(offsetInt, newMetaSizeBytes);
-      
+
       this.initMetaSizeParser();
     } catch (error) {
       errorLog({

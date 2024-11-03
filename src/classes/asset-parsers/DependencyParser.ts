@@ -135,6 +135,7 @@ export class DependencyParser {
    * @param {string} newDepName - The name of the new dependency.
    * @returns {boolean} - True if the dependency was added successfully, otherwise false.
    */
+
   private addDependency(offset: number, newDepName: string): boolean {
     try {
       if (
@@ -182,17 +183,16 @@ export class DependencyParser {
    */
   private removeDependency(name: string): boolean {
     try {
-
       if (this.existDependencies.length < 0) {
         warningLog(`no dependencies exist`);
         return false;
       }
 
-      const existDependency = this.dependencyExist(name);;
+      const existDependency = this.dependencyExist(name);
 
-      if(!existDependency) {
-         warningLog(`${name} dependency exist`);
-         return false
+      if (!existDependency) {
+        warningLog(`${name} dependency exist`);
+        return false;
       }
 
       const { dependencyByteLeng, nullByte } = currentVersion.dep;
@@ -201,7 +201,10 @@ export class DependencyParser {
       new AssetSizeParser(this.buffer).modifyAssetSize({
         int: removeInsertBytes,
       });
-      this.hexIns.removeBytes(existDependency.startOffset, existDependency.name.length);
+      this.hexIns.removeBytes(
+        existDependency.startOffset,
+        existDependency.name.length,
+      );
 
       new FirstFileParser(this.buffer).modifyFirstFile({
         int: removeInsertBytes,
@@ -300,7 +303,8 @@ export class DependencyParser {
    * @param {string} dependencyName - The name of the dependency to check.
    * @returns {ExistDependencies | null} - The existing dependency if found, otherwise null.
    */
-  public dependencyExist (dependencyName:string):ExistDependencies | null   {
-    return this.existDependencies.find(({ name }) => name === dependencyName) || null;
+  public dependencyExist(dependencyName: string): ExistDependencies | null {
+    return this.existDependencies.find(({ name }) => name === dependencyName) ||
+      null;
   }
 }

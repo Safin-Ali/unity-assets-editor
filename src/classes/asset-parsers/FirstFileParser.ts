@@ -1,7 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 import {
-initialAssetParserLabels,
   type FirstFileParserParams,
+  initialAssetParserLabels,
   type ModifyFirstFileParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
@@ -16,7 +16,9 @@ import HexHandler from "../HexHandler.ts";
 export class FirstFileParser {
   private buffer: string[];
   private hexIns: HexHandler;
-  public firstFile: FirstFileParserParams = JSON.parse(JSON.stringify(initialAssetParserLabels));
+  public firstFile: FirstFileParserParams = JSON.parse(
+    JSON.stringify(initialAssetParserLabels),
+  );
 
   /**
    * Creates an instance of FirstFileParser.
@@ -42,12 +44,12 @@ export class FirstFileParser {
       this.firstFile.offsetInt = start;
       this.firstFile.dt = dt;
 
-      const firstFileHex = this.buffer.slice(start, (start+dt));
+      const firstFileHex = this.buffer.slice(start, start + dt);
       this.firstFile.valueHex = firstFileHex;
       this.firstFile.valueInt = hexToInt({
-         hexBytes: firstFileHex,
-         endian
-        });
+        hexBytes: firstFileHex,
+        endian,
+      });
     } catch (error: any) {
       errorLog({
         error,
@@ -66,7 +68,7 @@ export class FirstFileParser {
    */
   public modifyFirstFile({ int, operation = "inc" }: ModifyFirstFileParams) {
     try {
-      const {dt,endian,valueInt,offsetInt} = this.firstFile;
+      const { dt, endian, valueInt, offsetInt } = this.firstFile;
       if (
         !valueInt || !endian ||
         !offsetInt || !dt
@@ -76,16 +78,16 @@ export class FirstFileParser {
 
       const { offsetBoundary } = currentVersion.firstFile;
       let newFirstFileBytes: string[] = intToHexBytes({
-        int:valueInt + int,
+        int: valueInt + int,
         endian,
-        minLength:dt
+        minLength: dt,
       });
 
       if (operation === "dec") {
         newFirstFileBytes = intToHexBytes({
           int: valueInt - int,
           endian,
-          minLength:dt
+          minLength: dt,
         });
       }
 
@@ -118,7 +120,7 @@ export class FirstFileParser {
    */
   private firstFileOffsetAlignFix() {
     try {
-      const {dt,endian,valueInt,offsetInt,valueHex} = this.firstFile;
+      const { dt, endian, valueInt, offsetInt, valueHex } = this.firstFile;
       if (
         !valueInt || !endian ||
         !offsetInt || !dt || !valueHex

@@ -197,15 +197,17 @@ export const intToHexBytes = (
     throw new Error("The input must be a valid integer.");
   }
 
-  let hexStr = (int).toString(16);
+  let hexStr = int.toString(16);
 
-  if(hexStr.length % 2)
-    hexStr = "0"+hexStr;
+  if (hexStr.length % 2) {
+    hexStr = "0" + hexStr;
+  }
 
-  let hexBytes:string[] = hexStr.toUpperCase().match(/.{1,2}/g) || [];
+  let hexBytes: string[] = hexStr.toUpperCase().match(/.{1,2}/g) || [];
 
-  if (hexBytes.length < minLength && minLength > 0) 
-    hexBytes = [...getNullBytes(minLength - hexBytes.length),...hexBytes];  
+  if (hexBytes.length < minLength && minLength > 0) {
+    hexBytes = [...getNullBytes(minLength - hexBytes.length), ...hexBytes];
+  }
 
   return endian === "little" ? hexBytes.toReversed() : hexBytes;
 };
@@ -267,12 +269,12 @@ export const padHexOffset = (
  * @throws {TypeError} If the input is not a string.
  */
 export const convertToLF = (text: string): string => {
-  if (typeof text !== 'string') {
-    throw new TypeError('Input must be a string');
+  if (typeof text !== "string") {
+    throw new TypeError("Input must be a string");
   }
   // Replace any form of newline (CRLF, CR) with LF
-  return text.replace(/\r\n|\r/g, '\n');
-}
+  return text.replace(/\r\n|\r/g, "\n");
+};
 
 /**
  * Retrieves a list of asset files from a specified directory.
@@ -285,9 +287,9 @@ export const convertToLF = (text: string): string => {
  * @returns An array of strings representing the names of files in the specified directory.
  * @throws {TypeError} If the `path` parameter is not a string.
  */
-export const getBaseAssets = (path:string = "assets") => {
-    if (typeof path !== 'string') {
-    throw new TypeError('Path must be a string');
-    }
-    return readdirSync(path);
-} 
+export const getBaseAssets = (path: string = "assets") => {
+  if (typeof path !== "string") {
+    throw new TypeError("Path must be a string");
+  }
+  return readdirSync(path);
+};
