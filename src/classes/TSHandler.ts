@@ -13,7 +13,7 @@ import { restartApp } from "../event/app-event.ts";
 import { validators } from "../utils/cli-seelctors.ts";
 import FileHandler from "./FileHandler.ts";
 import {
-convertToLF,
+  convertToLF,
   errorLog,
   getBaseAssets,
   hexToInt,
@@ -26,6 +26,7 @@ import { ClassSizeParser } from "./asset-parsers/ClassSizeParser.ts";
 import { FirstFileParser } from "./asset-parsers/FirstFileParser.ts";
 import HexHandler from "./HexHandler.ts";
 import { AssetSizeParser } from "./asset-parsers/AssetSizeParser.ts";
+import { currentVersion } from "../unity/version-structure.ts";
 
 export class TSHandler {
   private assetsDirectory: string[] = [];
@@ -161,7 +162,7 @@ export class TSHandler {
     this.monoAssetTextBuffer = convertToLF(readFileSync(
       pathGen("assets", this.tspPromptValues.trafficMonoText!),
       "ascii",
-    )).split("\n").filter((path) => path);    
+    )).split("\n").filter((path) => path);
 
     if (!this.monoAssetTextBuffer || this.monoAssetTextBuffer.length < 1) {
       throw new Error(
@@ -225,56 +226,70 @@ export class TSHandler {
       // Modify class size to a fixed value of 12
       classSizeParser.modifyClassSize({ int: 12 });
 
+      const { pptr } = currentVersion.monoBehavior;
       const hexHandlerIns = new HexHandler(arg.buffer);
       const scriptId = arg.firstFileOffset + 48;
       const pptrByteLength = 12;
 
       // Retrieve "oftens" value from the buffer
       const oftensValue = hexToInt({
-        hexBytes: arg.buffer.slice(scriptId, scriptId + 4),
-        endian: "little",
-        sum: true,
+        hexBytes: arg.buffer.slice(scriptId, scriptId + pptr.arraySize),
+        endian: pptr.endian,
       });
 
       const oftens = {
         start: scriptId,
-        end: scriptId + 4,
+        end: scriptId + pptr.arraySize,
         value: oftensValue,
       };
 
       // Retrieve "sometimes" value from the buffer
       const sometimesValue = hexToInt({
         hexBytes: arg.buffer.slice(
-          (scriptId + 4) + (oftens.value * pptrByteLength),
-          (scriptId + 4) + (oftens.value * pptrByteLength) + 4,
+          (scriptId + pptr.arraySize) + (oftens.value * pptrByteLength),
+          (scriptId + pptr.arraySize) + (oftens.value * pptrByteLength) +
+            pptr.arraySize,
         ),
-        endian: "little",
-        sum: true,
+        endian: pptr.endian,
       });
 
       const sometimes = {
-        start: (scriptId + 4) + (oftens.value * pptrByteLength),
-        end: (scriptId + 4) + (oftens.value * pptrByteLength) + 4,
+        start: (scriptId + pptr.arraySize) + (oftens.value * pptrByteLength),
+        end: (scriptId + pptr.arraySize) + (oftens.value * pptrByteLength) +
+        pptr.arraySize,
         value: sometimesValue,
       };
 
       // Create new PPtr BSITCarSettings path and file ID hex byte
       const newPPtr = [
-        ...intToHexBytes({ int: arg.index, minLength: 4 }),
-        ...intToHexBytes({ int: 1, minLength: 8 }),
+        ...intToHexBytes({
+          int: arg.index,
+          minLength: pptr.fileId,
+          endian: pptr.endian,
+        }),
+        ...intToHexBytes({
+          int: 1,
+          minLength: pptr.pathId,
+          endian: pptr.endian,
+        }),
       ];
 
-      // Replace or insert bytes based on the spawn type
+      // Replace array length bytes based on the spawn type
       if (!this.tspPromptValues.spawnType) {
         hexHandlerIns.replaceBytes(
           oftens.start,
-          intToHexBytes({ int: oftens.value + 1, minLength: 4 }),
+          intToHexBytes({
+            int: oftens.value + 1,
+            endian: pptr.endian,
+            minLength: pptr.fileId,
+          }),
         );
+
         hexHandlerIns.insertBytes(sometimes.start, newPPtr);
       } else {
         hexHandlerIns.replaceBytes(
           sometimes.start,
-          intToHexBytes({ int: sometimes.value + 1, minLength: 4 }),
+          intToHexBytes({ int: sometimes.value + 1, endian:pptr.endian, minLength: pptr.fileId }),
         );
         hexHandlerIns.insertBytes(arg.buffer.length, newPPtr);
       }

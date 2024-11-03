@@ -4,14 +4,15 @@ const versionStructure = [
   {
     unity: "2021.3.40f1",
     metaSize: {
-      start: 22,
-      end: 24,
+      start: 20,
       endian: UABE_BUSSID.Endianess.B,
+      dt:UABE_BUSSID.AssetsDataTypes.Int
     },
     dep: {
       endian: UABE_BUSSID.Endianess.L,
       nullByte: 22,
       dependencyByteLeng: 32,
+      dt:UABE_BUSSID.AssetsDataTypes.Int
     },
     firstFile: {
       endian: UABE_BUSSID.Endianess.B,
@@ -19,16 +20,25 @@ const versionStructure = [
         status: true,
         boundary: 0x10,
       },
-      start: 38,
-      end: 40,
+      start: 32,
+      dt:UABE_BUSSID.AssetsDataTypes.Sint64
     },
     assetSize: {
       endian: UABE_BUSSID.Endianess.B,
-      start: 30,
-      end: 32,
+      start: 24,
+      dt:UABE_BUSSID.AssetsDataTypes.Sint64
     },
     classSize: {
       endian: UABE_BUSSID.Endianess.L,
+      dt:UABE_BUSSID.AssetsDataTypes.Int
+    },
+    monoBehavior:{
+      pptr:{
+        endian:UABE_BUSSID.Endianess.L,
+        fileId:UABE_BUSSID.AssetsDataTypes.Int,
+        pathId:UABE_BUSSID.AssetsDataTypes.Sint64,
+        arraySize:UABE_BUSSID.AssetsDataTypes.Int
+      }
     },
     iss: {
       mono: {

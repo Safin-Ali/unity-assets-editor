@@ -1,7 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
-import type {
-  AssetSizeParserParams,
-  ModifyFirstFileParams,
+import {
+initialAssetParserLabels,
+  type AssetSizeParserParams,
+  type ModifyFirstFileParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
 import { errorLog, hexToInt } from "../../utils/common-utils.ts";
@@ -14,12 +15,7 @@ import HexHandler from "../HexHandler.ts";
 export class AssetSizeParser {
   private buffer: string[];
   private hexIns: HexHandler;
-  public assetSize: AssetSizeParserParams = {
-    offsetInt: null,
-    endian: null,
-    valueHex: null,
-    valueInt: null,
-  };
+  public assetSize: AssetSizeParserParams = JSON.parse(JSON.stringify(initialAssetParserLabels));
 
   /**
    * Creates an instance of AssetSizeParser.
@@ -40,13 +36,16 @@ export class AssetSizeParser {
    */
   private initAssetSizeParser() {
     try {
-      const { endian, start, end } = currentVersion.assetSize;
+      const { endian, start, dt } = currentVersion.assetSize;
       this.assetSize.endian = endian;
       this.assetSize.offsetInt = start;
-
-      const assetSizeHex = this.buffer.slice(start, end);
+      this.assetSize.dt = dt;
+      const assetSizeHex = this.buffer.slice(start, (start+dt));
       this.assetSize.valueHex = assetSizeHex;
-      this.assetSize.valueInt = hexToInt({ hexBytes: assetSizeHex });
+      this.assetSize.valueInt = hexToInt({
+        hexBytes: assetSizeHex,
+        endian
+      });
     } catch (error: any) {
       errorLog({
         error,
@@ -61,30 +60,33 @@ export class AssetSizeParser {
    * @param {number} params.int - The integer value to modify the asset size by.
    * @param {"inc" | "dec"} [params.operation="inc"] - The operation to perform on the asset size value ("inc" to increase, "dec" to decrease).
    *
-   * @throws {Error} If the asset size values are not properly initialized.
+   * @throws {TypeError} If the asset size values are not properly initialized.
    */
   public modifyAssetSize({ int, operation = "inc" }: ModifyFirstFileParams) {
     try {
+      const {dt,endian,offsetInt,valueInt} = this.assetSize;
       if (
-        !this.assetSize.valueInt || !this.assetSize.endian ||
-        !this.assetSize.offsetInt
+        !valueInt || !endian ||
+        !offsetInt || !dt
       ) {
-        throw new Error("Asset Size Interface Issue");
+        throw new TypeError("Asset Size Interface Issue");
       }
       let newAssetSizeBytes: string[] = intToHexBytes({
-        int: this.assetSize.valueInt + int,
-        endian: this.assetSize.endian,
+        int: valueInt + int,
+        endian,
+        minLength:dt
       });
 
       if (operation === "dec") {
         newAssetSizeBytes = intToHexBytes({
-          int: this.assetSize.valueInt - int,
-          endian: this.assetSize.endian,
+          int: valueInt - int,
+          endian,
+          minLength:dt
         });
       }
 
       this.hexIns.replaceBytes(
-        this.assetSize.offsetInt,
+        offsetInt,
         newAssetSizeBytes,
       );
       this.initAssetSizeParser();

@@ -1,6 +1,7 @@
-import type {
-  AssetParserLabels,
-  ModifyMetaSizeParams,
+import {
+initialAssetParserLabels,
+  type AssetParserLabels,
+  type ModifyMetaSizeParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
 import { errorLog, hexToInt } from "../../utils/common-utils.ts";
@@ -10,13 +11,7 @@ import HexHandler from "../HexHandler.ts";
 export class MetaSizeParser {
   private buffer: string[];
   private hexIns: HexHandler;
-  public metaSize: AssetParserLabels = {
-    offsetHex: null,
-    offsetInt: null,
-    valueHex: null,
-    valueInt: null,
-    endian: null,
-  };
+  public metaSize: AssetParserLabels = JSON.parse(JSON.stringify(initialAssetParserLabels));
   /**
    * Creates an instance of MetaSizeParser.
    *
@@ -36,21 +31,23 @@ export class MetaSizeParser {
    */
   private initMetaSizeParser() {
     try {
-      this.metaSize.endian = currentVersion.metaSize.endian;
-
-      this.metaSize.offsetInt = currentVersion.metaSize.start;
-      this.metaSize.offsetHex = intToHexBytes({
-        int: currentVersion.metaSize.start,
-      });
+      const {dt,endian,start} = currentVersion.metaSize;
+      this.metaSize.endian = endian;
+      
+      this.metaSize.offsetInt = start;
+      this.metaSize.dt = dt;
 
       const metaSizeHex = this.buffer.slice(
-        this.metaSize.offsetInt,
-        currentVersion.metaSize.end,
-      );
-
+        start,
+        (start+dt),
+      );      
+      
       this.metaSize.valueHex = metaSizeHex;
-
-      this.metaSize.valueInt = hexToInt({ hexBytes: metaSizeHex });
+      
+      this.metaSize.valueInt = hexToInt({
+        hexBytes: metaSizeHex,
+        endian
+      });    
     } catch (error) {
       errorLog({
         error,
@@ -69,25 +66,29 @@ export class MetaSizeParser {
    */
   public modifyMetaSize({ int, operation = "inc" }: ModifyMetaSizeParams) {
     try {
+      const {dt,endian,valueInt,offsetInt} = this.metaSize;
       if (
-        !this.metaSize.valueInt || !this.metaSize.endian ||
-        !this.metaSize.offsetInt
+        !valueInt || !endian ||
+        !offsetInt || !dt
       ) {
-        throw new Error("Meta Size Interface Issue");
+        throw new TypeError("Wrong Data Type in MetaSize Parser");
       }
-      const endian = currentVersion.metaSize.endian;
       let newMetaSizeBytes: string[] = intToHexBytes({
-        int: this.metaSize.valueInt + int,
+        int: valueInt + int,
         endian,
-      });
+        minLength:dt
+      });      
+      
       if (operation === "dec") {
         newMetaSizeBytes = intToHexBytes({
-          int: this.metaSize.valueInt - int,
+          int: valueInt - int,
           endian,
+          minLength:dt
         });
       }
 
-      this.hexIns.replaceBytes(this.metaSize.offsetInt, newMetaSizeBytes);
+      this.hexIns.replaceBytes(offsetInt, newMetaSizeBytes);
+      
       this.initMetaSizeParser();
     } catch (error) {
       errorLog({

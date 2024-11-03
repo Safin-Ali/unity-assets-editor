@@ -1,9 +1,10 @@
 // deno-lint-ignore-file no-explicit-any
-import type {
-  AssetParserLabels,
-  DependencyParserArg,
-  ExistDependencies,
-  ModifyDependencySizeParams,
+import {
+  type AssetParserLabels,
+  type DependencyParserArg,
+  type ExistDependencies,
+  initialAssetParserLabels,
+  type ModifyDependencySizeParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
 import {
@@ -27,26 +28,20 @@ export class DependencyParser {
   private buffer: string[];
   private hexIns: HexHandler;
   public existDependencies: ExistDependencies[] = [];
-  public dependency: AssetParserLabels = {
-    offsetHex: null,
-    offsetInt: null,
-    valueHex: null,
-    valueInt: null,
-    endian: null,
-  };
+  public dependency: AssetParserLabels = JSON.parse(JSON.stringify(initialAssetParserLabels));
 
   /**
    * Creates an instance of DependencyParser.
    *
    * @param {DependencyParserArg} arg - The buffer containing hex values and offset.
-   * @throws {Error} If the offsetInt is null.
+   * @throws {TypeError} If the offsetInt is null.
    */
   constructor(arg: DependencyParserArg) {
     this.buffer = arg.buffer;
-    this.dependency.offsetInt = arg.offset;
+    this.dependency.offsetInt = arg.offset;    
 
     if (!this.dependency.offsetInt) {
-      throw new Error("Dependency Parser offsetInt field is null");
+      throw new TypeError("Dependency Parser offsetInt field is null");
     }
 
     this.hexIns = new HexHandler(this.buffer);
@@ -60,21 +55,27 @@ export class DependencyParser {
    */
   private initDependencyParser() {
     try {
-      this.dependency.endian = currentVersion.dep.endian;
-      this.dependency.offsetHex = intToHexBytes({
-        int: this.dependency.offsetInt!,
-      });
+      const { dt, endian } = currentVersion.dep;
+      this.dependency.endian = endian;
+      this.dependency.dt = dt;    
+
+      const { offsetInt } = this.dependency;
+      
+      if (!offsetInt) {
+        throw new TypeError("Wrong Data Type in Dependency Parser");
+      }
 
       const depValueHex = this.buffer.slice(
-        this.dependency.offsetInt!,
-        this.dependency.offsetInt! + 2,
-      );
+        offsetInt,
+        offsetInt+(this.dependency.dt-1)
+      );      
+
       this.dependency.valueHex = depValueHex;
       this.dependency.valueInt = hexToInt({
         hexBytes: depValueHex,
-        sum: true,
+        endian:this.dependency.endian
       });
-
+      
       this.initGetExistDependency();
     } catch (error: any) {
       errorLog({
@@ -90,30 +91,35 @@ export class DependencyParser {
    * @param {string} params.name - The name of the dependency to modify.
    * @param {number} params.offset - The offset where the modification occurs.
    * @param {"add" | "dec"} [params.operation="add"] - The operation to perform on the dependency size.
-   * @throws {Error} If the dependency values are not properly initialized.
+   * @throws {TypeError} If the dependency values are not properly initialized.
    */
   public modifyDependencySize(
     { name, offset, operation = "add" }: ModifyDependencySizeParams,
   ) {
+
+    const { dt, endian, offsetInt, valueInt } = this.dependency;
     if (
-      !this.dependency.valueInt || !this.dependency.endian ||
-      !this.dependency.offsetInt
+      !valueInt || !endian ||
+      !offsetInt || !dt
     ) {
-      throw new Error("Dependency Parser Interface Issue");
+      throw new TypeError("Wrong Data Type in Dependency Parser");
     }
 
     const adjustment = operation === "add" ? 1 : -1;
+    
     const newDepBytes = intToHexBytes({
-      int: this.dependency.valueInt + adjustment,
-      endian: this.dependency.endian,
+      int: valueInt + adjustment,
+      endian,
+      minLength: (dt - 1),
     });
 
     operation === "add"
       ? this.addDependency(offset, name)
       : this.removeDependency(offset);
-
-    this.hexIns.replaceBytes(this.dependency.offsetInt, newDepBytes);
+    
+    this.hexIns.replaceBytes(offsetInt, newDepBytes);
     this.initDependencyParser();
+    
   }
 
   /**
@@ -124,12 +130,13 @@ export class DependencyParser {
    */
   private addDependency(offset: number, newDepName: string) {
     try {
+      const { dependencyByteLeng, nullByte } = currentVersion.dep;    
+
       this.hexIns.insertBytes(offset, [
-        ...getNullBytes(currentVersion.dep.nullByte).fill("00"),
+        ...getNullBytes(nullByte),
         ...asciiToHexBytes(newDepName),
       ]);
 
-      const { dependencyByteLeng, nullByte } = currentVersion.dep;
       const newInsertBytes = dependencyByteLeng + nullByte;
 
       new AssetSizeParser(this.buffer).modifyAssetSize({
@@ -141,13 +148,16 @@ export class DependencyParser {
       new MetaSizeParser(this.buffer).modifyMetaSize({
         int: newInsertBytes,
       });
-
+      
       this.existDependencies.push({
         name: newDepName,
         index: this.existDependencies.length + 1,
         startOffset: offset,
         endOffset: offset + (nullByte + newDepName.length),
       });
+
+
+      
     } catch (error) {
       errorLog({
         error,
@@ -160,7 +170,7 @@ export class DependencyParser {
    * Removes an existing dependency from the buffer.
    *
    * @param {number} offset - The offset of the dependency to remove.
-   * @throws {Error} If the dependency does not exist.
+   * @throws {TypeError} If the dependency does not exist.
    */
   private removeDependency(offset: number) {
     try {
@@ -169,7 +179,7 @@ export class DependencyParser {
       ) => startOffset === offset);
 
       if (!existDependency) {
-        throw new Error(
+        throw new TypeError(
           "Failed to remove dependency because it does not exist",
         );
       }
@@ -206,17 +216,27 @@ export class DependencyParser {
    * @private
    */
   private initGetExistDependency() {
+    this.existDependencies = [];
     try {
       const { dependencyByteLeng, nullByte } = currentVersion.dep;
-      const { offsetInt } = this.dependency;
-      let currDepOffset = offsetInt! + 3;
+      const { offsetInt, dt, valueInt, endian } = this.dependency;     
+
+      if(!valueInt)
+        return;
+      
+      if (!endian ||
+        !offsetInt || !dt
+      ) {
+        throw new TypeError("Wrong Data Type in Dependency Parser");
+      }
+      let currDepOffset = offsetInt! + (dt - 1);      
 
       for (let index = 1; index <= this.dependency.valueInt!; index++) {
         let currDepByteLeng = dependencyByteLeng;
         let depName = hexBytesToAscii(
           this.buffer.slice(
             currDepOffset + nullByte,
-            currDepOffset + nullByte + currDepByteLeng,
+            currDepOffset + (nullByte + currDepByteLeng),
           ),
         );
 
@@ -225,7 +245,7 @@ export class DependencyParser {
           depName = hexBytesToAscii(
             this.buffer.slice(
               currDepOffset + nullByte,
-              currDepOffset + nullByte + currDepByteLeng,
+              currDepOffset + (nullByte + currDepByteLeng),
             ),
           );
         }
@@ -237,7 +257,7 @@ export class DependencyParser {
           startOffset: currDepOffset,
           endOffset,
         });
-
+        
         currDepOffset = endOffset;
       }
     } catch (error) {

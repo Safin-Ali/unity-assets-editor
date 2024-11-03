@@ -28,7 +28,6 @@ export class ISSHandler {
 
   /**
    * Creates an instance of ISSHandler.
-   * @param {string[]} assetDirectory - An array of asset directory paths.
    */
   constructor() {
     try {

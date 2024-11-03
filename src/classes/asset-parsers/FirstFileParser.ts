@@ -1,7 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
-import type {
-  FirstFileParserParams,
-  ModifyFirstFileParams,
+import {
+initialAssetParserLabels,
+  type FirstFileParserParams,
+  type ModifyFirstFileParams,
 } from "../../types/AssetParsers-custom.ts";
 import { currentVersion } from "../../unity/version-structure.ts";
 import { errorLog, getNullBytes } from "../../utils/common-utils.ts";
@@ -15,12 +16,7 @@ import HexHandler from "../HexHandler.ts";
 export class FirstFileParser {
   private buffer: string[];
   private hexIns: HexHandler;
-  public firstFile: FirstFileParserParams = {
-    offsetInt: null,
-    endian: null,
-    valueHex: null,
-    valueInt: null,
-  };
+  public firstFile: FirstFileParserParams = JSON.parse(JSON.stringify(initialAssetParserLabels));
 
   /**
    * Creates an instance of FirstFileParser.
@@ -41,13 +37,17 @@ export class FirstFileParser {
    */
   private initFirstFileParser() {
     try {
-      const { endian, start, end } = currentVersion.firstFile;
+      const { endian, start, dt } = currentVersion.firstFile;
       this.firstFile.endian = endian;
       this.firstFile.offsetInt = start;
+      this.firstFile.dt = dt;
 
-      const firstFileHex = this.buffer.slice(start, end);
+      const firstFileHex = this.buffer.slice(start, (start+dt));
       this.firstFile.valueHex = firstFileHex;
-      this.firstFile.valueInt = hexToInt({ hexBytes: firstFileHex });
+      this.firstFile.valueInt = hexToInt({
+         hexBytes: firstFileHex,
+         endian
+        });
     } catch (error: any) {
       errorLog({
         error,
@@ -62,32 +62,35 @@ export class FirstFileParser {
    * @param {number} params.int - The integer value to modify the first file by.
    * @param {"inc" | "dec"} [params.operation="inc"] - The operation to perform on the first file value ("inc" to increase, "dec" to decrease).
    *
-   * @throws {Error} If the first file values are not properly initialized.
+   * @throws {TypeError} If the first file values are not properly initialized.
    */
   public modifyFirstFile({ int, operation = "inc" }: ModifyFirstFileParams) {
     try {
+      const {dt,endian,valueInt,offsetInt} = this.firstFile;
       if (
-        !this.firstFile.valueInt || !this.firstFile.endian ||
-        !this.firstFile.offsetInt
+        !valueInt || !endian ||
+        !offsetInt || !dt
       ) {
-        throw new Error("First File Interface Issue");
+        throw new TypeError("Wrong Data Type in FirstFile Parser");
       }
 
-      const { endian, offsetBoundary } = currentVersion.firstFile;
+      const { offsetBoundary } = currentVersion.firstFile;
       let newFirstFileBytes: string[] = intToHexBytes({
-        int: this.firstFile.valueInt + int,
+        int:valueInt + int,
         endian,
+        minLength:dt
       });
 
       if (operation === "dec") {
         newFirstFileBytes = intToHexBytes({
-          int: this.firstFile.valueInt - int,
+          int: valueInt - int,
           endian,
+          minLength:dt
         });
       }
 
       this.hexIns.replaceBytes(
-        this.firstFile.offsetInt,
+        offsetInt,
         newFirstFileBytes,
       );
 
@@ -111,20 +114,21 @@ export class FirstFileParser {
    * aligned offset, inserting null bytes as needed to ensure correct alignment.
    *
    * @private
-   * @throws {Error} If the first file values are not properly initialized.
+   * @throws {TypeError} If the first file values are not properly initialized.
    */
   private firstFileOffsetAlignFix() {
     try {
+      const {dt,endian,valueInt,offsetInt,valueHex} = this.firstFile;
       if (
-        !this.firstFile.valueInt || !this.firstFile.valueHex ||
-        !this.firstFile.offsetInt
+        !valueInt || !endian ||
+        !offsetInt || !dt || !valueHex
       ) {
-        throw new Error("First File Interface Issue");
+        throw new TypeError("Wrong Data Type in FirstFile Parser");
       }
 
       // Calculate gap length and new hex bytes for alignment
       const { gapLength, newHexBytes } = padHexOffset({
-        hexBytes: this.firstFile.valueHex,
+        hexBytes: valueHex,
         offsetBoundary: currentVersion.firstFile.offsetBoundary.boundary,
       });
 
@@ -132,10 +136,10 @@ export class FirstFileParser {
       const nullBytes = getNullBytes(gapLength);
 
       // Replace original bytes with aligned bytes
-      this.hexIns.replaceBytes(this.firstFile.offsetInt, newHexBytes);
+      this.hexIns.replaceBytes(offsetInt, newHexBytes);
 
       // Insert padding null bytes at the appropriate position
-      this.hexIns.insertBytes(this.firstFile.valueInt, nullBytes);
+      this.hexIns.insertBytes(valueInt, nullBytes);
 
       // Re-initialize the first file parser to reflect updates
       this.initFirstFileParser();

@@ -1,11 +1,20 @@
 export type EndianessValue = "little" | "big";
+export type AssetsDataType = 1 | 4 | 8;
 
 export interface AssetParserLabels {
   offsetInt: number | null;
-  offsetHex: string[] | null;
   valueHex: string[] | null;
   valueInt: number | null;
   endian: EndianessValue | null;
+  dt:AssetsDataType | null;
+}
+
+export const initialAssetParserLabels:AssetParserLabels = {
+  dt:null,
+  endian:null,
+  offsetInt:null,
+  valueHex:null,
+  valueInt:null
 }
 
 export interface ModifyMetaSizeParams {
@@ -31,14 +40,14 @@ export interface ExistDependencies {
   endOffset: number;
 }
 
-export type FirstFileParserParams = Omit<AssetParserLabels, "offsetHex">;
+export type FirstFileParserParams = AssetParserLabels;
 
 export type ModifyFirstFileParams = ModifyMetaSizeParams;
 
-export type AssetSizeParserParams = Omit<AssetParserLabels, "offsetHex">;
+export type AssetSizeParserParams = AssetParserLabels;
 
 export type ClassSizeParserArg = DependencyParserArg;
 
-export type ClassSizeParams = Omit<AssetParserLabels, "offsetHex">;
+export type ClassSizeParams = AssetParserLabels;
 
 export type ModifyClassSize = ModifyMetaSizeParams;

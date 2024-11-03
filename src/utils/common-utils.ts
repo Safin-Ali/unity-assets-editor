@@ -164,7 +164,7 @@ export const hexToInt = ({
   sum = false,
 }: hexToIntParams): number => {
   if (endian === "little") {
-    hexBytes = hexBytes.reverse();
+    hexBytes = hexBytes.toReversed();
   }
 
   if (
@@ -207,7 +207,7 @@ export const intToHexBytes = (
   if (hexBytes.length < minLength && minLength > 0) 
     hexBytes = [...getNullBytes(minLength - hexBytes.length),...hexBytes];  
 
-  return endian === "little" ? hexBytes.reverse() : hexBytes;
+  return endian === "little" ? hexBytes.toReversed() : hexBytes;
 };
 
 /**
