@@ -1,4 +1,6 @@
 {
+  "name": "@uabe/bussid-asset-editor",
+  "version": "1.0.0",
   "nodeModulesDir": "none",
   "tasks": {
     "start": "deno run --allow-read --allow-write --allow-env src/app.ts",
