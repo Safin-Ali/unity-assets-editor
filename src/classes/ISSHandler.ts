@@ -5,11 +5,10 @@ import {
   Input,
 } from "https://deno.land/x/cliffy@v0.25.7/prompt/mod.ts";
 import {
-  brightBlue,
   brightYellow,
 } from "https://deno.land/std@0.221.0/fmt/colors.ts";
 import { restartApp } from "../event/app-event.ts";
-import { errorLog, getBaseAssets } from "../utils/common-utils.ts";
+import { displayAssetPaths, errorLog, getBaseAssets } from "../utils/common-utils.ts";
 import type { BaseAssets } from "../types/ISSHandler-custom.ts";
 
 /**
@@ -32,7 +31,7 @@ export class ISSHandler {
   constructor() {
     try {
       this.assetsDirectory = getBaseAssets();
-      this.displayAssetPaths();
+      displayAssetPaths(this.assetsDirectory);
       this.initializeISSPrompt();
       // deno-lint-ignore no-explicit-any
     } catch (error: any) {
@@ -40,15 +39,6 @@ export class ISSHandler {
         error,
       });
     }
-  }
-
-  /**
-   * Logs asset paths in the console.
-   */
-  private displayAssetPaths(): void {
-    this.assetsDirectory.forEach((path, index) => {
-      console.log(brightYellow(`${index} `), brightBlue(`${path}`));
-    });
   }
 
   /**

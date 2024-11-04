@@ -1,4 +1,5 @@
 import {
+  brightBlue,
   brightGreen,
   brightRed,
   brightYellow,
@@ -293,3 +294,16 @@ export const getBaseAssets = (path: string = "assets") => {
   }
   return readdirSync(path);
 };
+
+/**
+ * Logs asset paths in the console.
+ *
+ * @param {string[]} assetsDir - An array of asset paths to be logged.
+ * @returns {void} This function does not return a value.
+ */
+export const displayAssetPaths = (assetsDir: string[]): void => {
+  return assetsDir.forEach((path, index) =>
+    console.log(brightYellow(`${index} `), brightBlue(`${path}`))
+  );
+};
+

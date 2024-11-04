@@ -1,6 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
 import {
-  brightBlue,
   brightGreen,
   brightYellow,
 } from "https://deno.land/std@0.221.0/fmt/colors.ts";
@@ -14,6 +13,7 @@ import { validators } from "../utils/cli-seelctors.ts";
 import FileHandler from "./FileHandler.ts";
 import {
   convertToLF,
+  displayAssetPaths,
   errorLog,
   getBaseAssets,
   hexToInt,
@@ -40,22 +40,13 @@ export class TSHandler {
   constructor() {
     try {
       this.assetsDirectory = getBaseAssets();
-      this.displayAssetPaths();
+      displayAssetPaths(this.assetsDirectory);
       this.initializeTSPrompt();
     } catch (error: any) {
       errorLog({
         error,
       });
     }
-  }
-
-  /**
-   * Logs asset paths in the console.
-   */
-  private displayAssetPaths(): void {
-    this.assetsDirectory.forEach((path, index) => {
-      console.log(brightYellow(`${index} `), brightBlue(`${path}`));
-    });
   }
 
   /**
