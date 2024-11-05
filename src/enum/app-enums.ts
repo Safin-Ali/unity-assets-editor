@@ -6,6 +6,7 @@ enum ENV {
 enum Prompt {
   IncreaseSkinSlots = "iss",
   TrafficSpawn = "tsp",
+  ProtectOBB = "obbpt"
 }
 
 export enum Endianess {
