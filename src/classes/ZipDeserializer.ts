@@ -1,5 +1,17 @@
-import { BlockField, CDFH, EOCHD, LFH } from "../types/ZipDeserializer-custom.ts";
-import { errorLog, hexBytesToAscii, hexToInt } from "../utils/common-utils.ts";
+import {
+    BlockField,
+    CDFH,
+    EOCHD,
+    LFH,
+} from "../types/ZipDeserializer-custom.ts";
+import {
+    asciiToHexBytes,
+    errorLog,
+    getNullBytes,
+    hexBytesToAscii,
+    hexToInt,
+    intToHexBytes,
+} from "../utils/common-utils.ts";
 import HexHandler from "./HexHandler.ts";
 
 /**
@@ -8,7 +20,7 @@ import HexHandler from "./HexHandler.ts";
  * and Local File Header (LFH) from a buffer of hex data.
  */
 export class ZipDeserializer {
-    /** The End of Central Directory (EOCD) header, if found. */
+    // The End of Central Directory (EOCD) header, if found.
     public EOCD: EOCHD | null = null;
 
     /** List of Central Directory File Headers (CDFH) parsed from the buffer. */
@@ -23,7 +35,7 @@ export class ZipDeserializer {
     /** Instance of HexHandler to assist in searching and processing hex data. */
     public hexHandler: HexHandler;
 
-    /** Signatures used for identifying EOCD and CDFH headers. */
+    // Signatures used for identifying EOCD and CDFH headers.
     private singnatures = {
         EOCHD: ["50", "4B", "05", "06"],
         CDFH: ["50", "4B", "01", "02"],
@@ -74,9 +86,12 @@ export class ZipDeserializer {
                 this.singnatures.EOCHD,
             );
             if (eochd_sing.length !== 1) {
-                throw new Error("EOCD signature not found.");
+                errorLog({
+                    error: null,
+                    cb: () => {},
+                    msg: "EOCD signature not found.",
+                });
             }
-
             const eochdStartOffset = eochd_sing[0].end;
             this.EOCD = this.extractEOCDFields(eochdStartOffset);
         } catch (err) {
@@ -108,12 +123,14 @@ export class ZipDeserializer {
                 eochdStartOffset + 13,
                 eochdStartOffset + 17,
             );
+            const offset = eochdStartOffset - 3;
 
             return {
                 CDHFTotalRecord: this.createBlockField(CDHFTotalRecord),
                 CDHFNumberRecord: this.createBlockField(CDHFNumberRecord),
                 CDHFBytesTotalSize: this.createBlockField(CDHFBytesSize),
                 CDHFStartOffset: this.createBlockField(CDHFStartOffset),
+                offset,
             };
         } catch (err) {
             this.errorMsg("Error extracting EOCD fields", err);
@@ -232,5 +249,159 @@ export class ZipDeserializer {
     // deno-lint-ignore no-explicit-any
     private errorMsg(message: string, error?: any) {
         errorLog({ msg: message, error: error });
+    }
+
+        /**
+     * Damages the ZIP file by modifying key headers (LFH, CDFH, EOCD) to render it invalid.
+     * This can be used for protection purposes to prevent unauthorized extraction or manipulation
+     * of the ZIP file. The modifications include nullifying specific fields and inserting fake data
+     * to disrupt standard ZIP extraction tools.
+     *
+     * The modifications performed by this method include:
+     * - Nullifying CRC32 values and file/folder name characters in the Local File Headers (LFH).
+     * - Nullifying version information in the Central Directory File Headers (CDFH) for specific files.
+     * - Modifying the End of Central Directory (EOCD) header, including altering the number of records
+     *   and total records, as well as adding custom data (e.g., credit message and fake CDFH entry) to prevent ZIP repair tools from reading it.
+     *
+     * This method is specifically designed to interfere with standard ZIP repair or extraction processes
+     * while maintaining the integrity of the ZIP structure.
+     *
+     * @returns {boolean} - Returns `true` if the ZIP was successfully damaged, `false` otherwise. 
+     *                      The method will return `false` if any critical ZIP headers (EOCD, CDFH, LFH)
+     *                      are missing or invalid.
+     */
+    public damageZip(): boolean {
+        if (!this.LFH || !this.CDFH || !this.EOCD) {
+            errorLog({
+                error: null,
+                cb: () => {},
+                msg: "Invalid ZIP! Can't Protect",
+            });
+
+            return false;
+        }
+
+        /**
+         * modify LFH
+         * CRC32 bytes to null
+         *
+         * file or folder name first character byte to null
+         */
+
+        this.LFH.forEach(({ offset }) => {
+            // null CRC2
+            this.hexHandler.replaceBytes(offset + 14, getNullBytes(4));
+
+            // null file or folder name first character
+            this.hexHandler.replaceBytes(offset + 30, getNullBytes(1));
+        });
+
+        /**
+         * modify CDFH
+         * the version needed to extract bytes to null
+         */
+
+        this.CDFH.forEach(({ offset,fileName }) => {
+
+            if(fileName === "unity_obb_guid")
+                return;
+            // null version needed to extract bytes
+            this.hexHandler.replaceBytes(offset + 6, getNullBytes(2));
+        });
+
+        /**
+         * modify EOCD
+         * Addition 5 Number of central directory records on this disk each byte.
+         *
+         * Addition 5 Total number of central directory records each byte.
+         *
+         * Add Credit and then add another unknown CDFH
+         */
+
+        // addition 5 NCDR and TCDR
+        const {
+            CDHFNumberRecord,
+            CDHFTotalRecord,
+            offset,
+        } = this.EOCD;
+
+        const damagedNCDRBytes = CDHFNumberRecord.hex.map((byte) => {
+            const currentByteInt = hexToInt({
+                hexBytes: [byte],
+                endian: "little",
+            });
+
+            return intToHexBytes({ int: currentByteInt + 5, endian: "little" });
+        });
+
+        const damagedTCDRBytes = CDHFTotalRecord.hex.map((byte) => {
+            const currentByteInt = hexToInt({
+                hexBytes: [byte],
+                endian: "little",
+            });
+
+            return intToHexBytes({ int: currentByteInt + 5, endian: "little" });
+        });
+
+        this.hexHandler.replaceBytes(
+            offset + 8,
+            damagedNCDRBytes.flat(),
+        );
+
+        this.hexHandler.replaceBytes(
+            offset + 10,
+            damagedTCDRBytes.flat(),
+        );
+
+        /**
+         * Add Credit and AEM CDFH
+         */
+
+        const creditByte = asciiToHexBytes(
+            "This Achive Protected By ZDamager (SA)",
+        );
+
+        // that anti extract bytes prevents some zip repair tool to read that zip as invalid and tools can't unpack
+        const AEMCDFHByte = [
+            "00",
+            "50",
+            "4B",
+            "01",
+            "02",
+            "1F",
+            "00",
+            "0A",
+            "00",
+            "01",
+            ...getNullBytes(3),
+            "43",
+            "03",
+            "0D",
+            "03",
+            "34",
+            "97",
+            "C0",
+            "53",
+            "59",
+            ...getNullBytes(3),
+            "59",
+            ...getNullBytes(3),
+            "29",
+            "00",
+            "23",
+            ...getNullBytes(7),
+            "20",
+            ...getNullBytes(3),
+            "90",
+            "C6",
+            "6C",
+            "05",
+        ];
+
+        this.hexHandler.insertBytes(offset + 22, [
+            ...creditByte,
+            ...AEMCDFHByte,
+        ]);
+        return true;
     }
 }

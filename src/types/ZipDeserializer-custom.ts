@@ -8,6 +8,7 @@ export interface EOCHD {
     CDHFBytesTotalSize:BlockField;
     CDHFTotalRecord:BlockField;
     CDHFNumberRecord:BlockField;
+    offset:number;
 }
 
 export interface LFH {
