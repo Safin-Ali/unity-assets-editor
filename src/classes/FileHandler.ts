@@ -50,7 +50,7 @@ export default class FileHandler {
       return;
     }
 
-    const { dir, name } = parse(this.destPath);
+    const { dir, base } = parse(this.destPath);    
 
     try {
       const hexString = this.buffer.join("").toLowerCase();
@@ -58,7 +58,7 @@ export default class FileHandler {
       if (!existsSync(this.destPath)) {
         mkdirSync(dir, { recursive: true });
       }
-      writeFileSync(join(dir, name), hexString, "hex");
+      writeFileSync(join(dir, base), hexString, "hex");
     } catch (error) {
       errorLog({
         error,
