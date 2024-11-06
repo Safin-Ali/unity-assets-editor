@@ -8,7 +8,7 @@ export const selectors: Selector[] = [
     options: [
       { name: brightCyan("Increase Skin Slots"), value: "iss" },
       { name: brightCyan("Traffic Spawn"), value: "tsp" },
-      { name: brightCyan("Protect OBB"), value: "obbpt" },
+      // { name: brightCyan("Protect OBB"), value: "obbpt" },
     ],
   },
 ];

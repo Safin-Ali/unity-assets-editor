@@ -50,9 +50,10 @@ export class CLIHandler {
         new ISSHandler();
       } else if (rootAns === UABE_BUSSID.Prompt.TrafficSpawn) {
         new TSHandler();
-      } else if (rootAns === UABE_BUSSID.Prompt.ProtectOBB) {
-        new OBBProtectHandler();
-      }
+      } 
+      // else if (rootAns === UABE_BUSSID.Prompt.ProtectOBB) {
+      //   new OBBProtectHandler();
+      // }
       // deno-lint-ignore no-explicit-any
     } catch (error: any) {
       errorLog({
